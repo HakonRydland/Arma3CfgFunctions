@@ -1,14 +1,16 @@
-# Arma 3 CfgFunctions README
+# Arma 3 CfgFunctions
 
 ## Features
 
 Allows for the generation of auto completion intlisens for you Arma 3 mission functions.
 
-\!\[feature X\]\(images/feature-x.png\)
-
-> Tip: Many popular extensions utilize animations. This is an excellent way to show off your extension! We recommend short, focused animations that are easy to follow.
-
 Note for consistent results it is recommended to seth both paths in the settings.
+
+## How to use
+
+1. Set relative paths to both `mission root` and `description.ext`
+2. open Command Palette and run `Arma 3: Recompile CfgFunctions`
+3. Recompile when ever you add a function to CfgFunctions
 
 ## Extension Settings
 
@@ -24,6 +26,5 @@ Both paths are workspace relative
 ### 1.0.0
 
 Initial release of Arma 3 CfgFunctions
-
 
 **Enjoy!**
