@@ -25,9 +25,9 @@ export const parse = function (raw: string, options?: Options): any {
         return raw[currentPosition] || '';
     };
     let translateString = function(string: string): string {
-        if(typeof options.translations === "object") {
-            return options.translations.hasOwnProperty(string) ?
-                options.translations[string] : string;
+        if(typeof options!.translations === "object") {
+            return options!.translations.hasOwnProperty(string) ?
+                options!.translations[string] : string;
         }
 
         return string;
