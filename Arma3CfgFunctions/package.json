@@ -22,6 +22,7 @@
     "intelisense"
 ],
   "activationEvents": [
+    "onStartupFinished",
     "onCommand:a3cfgfunctions.recompile",
     "onCommand:a3cfgfunctions.peek"
   ],
@@ -51,6 +52,16 @@
           "type": "string",
           "default": "",
           "description": "Path to the root of the mission"
+        },
+        "Arma3CfgFunctions.DisableAutoComplete": {
+            "type": "boolean",
+            "default": false,
+            "description": "Disable the auto completion feature. Rquires restart"
+        },
+        "Arma3CfgFunctions.DisableHeaderHover": {
+            "type": "boolean",
+            "default": false,
+            "description": "Disable the Header hover feature. Rquires restart"
         }
       }
     },

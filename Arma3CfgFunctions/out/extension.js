@@ -120,36 +120,42 @@ function parseDescription(context) {
             console.log(functionsLib);
             //remove old completion items and add new completion items
             disposCompletionItems();
-            for (const key in functionsLib) {
-                const element = functionsLib[key];
-                let disposable = vscode.languages.registerCompletionItemProvider('sqf', {
-                    provideCompletionItems(document, Position, token, context) {
-                        return [
-                            new vscode.CompletionItem(element.Name)
-                        ];
-                    }
-                });
-                context.subscriptions.push(disposable);
-                completionItems.push(disposable);
-            }
-            ;
-            for (const key in functionsLib) {
-                const element = functionsLib[key];
-                if (!(element.Header == '')) {
-                    let disposable = vscode.languages.registerHoverProvider('sqf', {
-                        provideHover(document, position, token) {
-                            const range = document.getWordRangeAtPosition(position);
-                            const word = document.getText(range);
-                            if (word == element.Name) {
-                                return new vscode.Hover({
-                                    language: "plaintext",
-                                    value: element.Header
-                                });
-                            }
+            if (!config.get('DisableAutoComplete')) {
+                for (const key in functionsLib) {
+                    const element = functionsLib[key];
+                    let disposable = vscode.languages.registerCompletionItemProvider('sqf', {
+                        provideCompletionItems(document, Position, token, context) {
+                            return [
+                                new vscode.CompletionItem(element.Name)
+                            ];
                         }
                     });
                     context.subscriptions.push(disposable);
                     completionItems.push(disposable);
+                }
+                ;
+            }
+            ;
+            if (!config.get('DisableHeaderHover')) {
+                for (const key in functionsLib) {
+                    const element = functionsLib[key];
+                    if (!(element.Header == '')) {
+                        let disposable = vscode.languages.registerHoverProvider('sqf', {
+                            provideHover(document, position, token) {
+                                const range = document.getWordRangeAtPosition(position);
+                                const word = document.getText(range);
+                                if (word == element.Name) {
+                                    return new vscode.Hover({
+                                        language: "plaintext",
+                                        value: element.Header
+                                    });
+                                }
+                            }
+                        });
+                        context.subscriptions.push(disposable);
+                        completionItems.push(disposable);
+                    }
+                    ;
                 }
                 ;
             }
@@ -335,6 +341,7 @@ function getHeader(uri) {
 function activate(context) {
     context.subscriptions.push(vscode.commands.registerCommand('a3cfgfunctions.recompile', () => parseDescription(context)));
     context.subscriptions.push(vscode.commands.registerTextEditorCommand('a3cfgfunctions.peek', () => PeekFile()));
+    parseDescription(context);
 }
 exports.activate = activate;
 function deactivate() {
