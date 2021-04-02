@@ -24,14 +24,12 @@ function updateMissionRoot(){
 updateMissionRoot();
 
 async function parseDescription(context: vscode.ExtensionContext) {
-    vscode.window.showInformationMessage('Recompiling');
 
     //working folder
     let workingFolderPath = missionRoot + '/.vscode';
     if (!fs.existsSync(workingFolderPath)) {
         fs.mkdirSync(workingFolderPath);
     };
-
 
     //root description.ext path
     let descriptionPath = '**/*description.ext';
@@ -56,7 +54,7 @@ async function parseDescription(context: vscode.ExtensionContext) {
 
     let file = await vscode.workspace.findFiles(descriptionPath, "", 1);
     vscode.workspace.openTextDocument(file[0]).then(async (document) => {
-        if (document.isDirty) { vscode.window.showInformationMessage(`File unsaved, aborting. | Path: ${descriptionPath}`);};
+        if (document.isDirty) { vscode.window.showInformationMessage(`Arma3 CfgFunctions | File unsaved, aborting. | Path: ${descriptionPath}`);};
         //flag declaration
         let cfgFunctionsFound = false;
         let inCfgFunctions = false;
@@ -138,7 +136,7 @@ async function parseDescription(context: vscode.ExtensionContext) {
                 };
             };
         }
-        vscode.window.showInformationMessage('Recompiled');
+        vscode.window.showInformationMessage('Arma3 CfgFunctions | Recompiled');
     });
 };
 
@@ -156,7 +154,7 @@ function parsePath(currentPath: string, include: string) {
     let ret = path.join('/');
 
     if (!fs.existsSync(ret)) {
-        vscode.window.showErrorMessage(`invalid include filepath: ${include}`);
+        vscode.window.showErrorMessage(`Arma3 CfgFunctions | Invalid include filepath: ${include}`);
         console.error(`invalid include: ${ret}`);
     };
 
@@ -266,7 +264,7 @@ function PeekFile() {
 
     //find function in library
     let index = Object.getOwnPropertyNames(functionsLib).find((value:string) => value == selectedText);
-    if (index === undefined) {vscode.window.showInformationMessage(`Could not find function definition: ${selectedText}`) ;return};
+    if (index === undefined) {vscode.window.showInformationMessage(`Arma3 CfgFunctions | Could not find function definition: ${selectedText}`) ;return};
 
     //open file
     let functionPath = (missionRoot + '/' + functionsLib[index]['file']).split('/').join('\\');
@@ -286,6 +284,7 @@ async function getHeader(uri: vscode.Uri) {
     header = header.split('*/')[0];
 
     //trim new line
+    if (header == text || header === undefined) {return ""};
     if (header.startsWith('\r\n')) {header = header.substr(2, header.length)}
     if (header.endsWith('\r\n')) { header = header.substr(0, header.length - 2) }
 
