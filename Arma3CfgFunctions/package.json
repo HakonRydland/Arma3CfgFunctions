@@ -15,7 +15,8 @@
     "Other"
   ],
   "activationEvents": [
-    "onCommand:a3cfgfunctions.recompile"
+    "onCommand:a3cfgfunctions.recompile",
+    "onCommand:a3cfgfunctions.peek"
   ],
   "main": "./out/extension.js",
   "contributes": {
@@ -24,6 +25,12 @@
         "command": "a3cfgfunctions.recompile",
         "category": "Arma 3",
         "title": "Recompile CfgFunctions"
+      },
+      {
+          "command": "a3cfgfunctions.peek",
+          "category": "Arma 3",
+          "title": "Peek Function definition",
+          "enablement": "editorHasSelection"
       }
     ],
     "configuration": {
@@ -40,6 +47,14 @@
           "description": "Path to the root of the mission"
         }
       }
+    },
+    "menus": {"editor/context": [
+            {
+                "when": "editorHasSelection",
+                "command": "a3cfgfunctions.peek",
+                "group": "navigation"
+            }
+        ]
     }
   },
   "scripts": {

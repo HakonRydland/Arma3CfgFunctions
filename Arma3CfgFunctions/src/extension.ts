@@ -12,9 +12,15 @@ function disposCompletionItems() {
     completionItems = [];
 };
 
+//function Library
+let config = vscode.workspace.getConfiguration('Arma3CfgFunctions');
+let missionRoot = vscode.workspace.rootPath + '/';
+let functionsLib = {}
+
 export function activate(context: vscode.ExtensionContext) {
 
     let parseDescription = async function () {
+        vscode.window.showInformationMessage('Recompiling');
 
         //working folder
         let workingFolderPath = vscode.workspace.rootPath + '/.vscode';
@@ -22,7 +28,7 @@ export function activate(context: vscode.ExtensionContext) {
             fs.mkdirSync(workingFolderPath);
         };
 
-        let config = vscode.workspace.getConfiguration('Arma3CfgFunctions');
+
         //root description.ext path
         let descriptionPath = '**/*description.ext';
         if (config.has('DescriptionPath')) {
@@ -34,7 +40,7 @@ export function activate(context: vscode.ExtensionContext) {
         console.info(`Description.ext path: ${descriptionPath}`);
 
         //mission root
-        let missionRoot = vscode.workspace.rootPath + '/';
+        missionRoot = vscode.workspace.rootPath + '/';
         if (config.has("MissionRoot")) {
             let path = vscode.workspace.rootPath + '/' + config.get("MissionRoot");
             if (path != "") {
@@ -83,13 +89,8 @@ export function activate(context: vscode.ExtensionContext) {
             let parsedjson = parse(fs.readFileSync(workingFolderPath+"/cfgfunctions").toString());
             fs.unlinkSync(workingFolderPath+"/cfgfunctions");
 
-            let functionsLib = generateLibrary(parsedjson);
-
-            /*//write to json file
-            fs.writeFileSync(workingFolderPath+"/cfgfunctions.json", JSON.stringify(parsedjson) ); //write JSON as a file
-            fs.writeFileSync(workingFolderPath+"/functionsLib.json", JSON.stringify(functionsLib)); //write JSON as a file
-            console.log(parsedjson);
-            console.log(functionsLib);*/
+            functionsLib = generateLibrary(parsedjson);
+            console.log(functionsLib);
 
             //remove old completion items and add new completion items
             disposCompletionItems();
@@ -124,7 +125,7 @@ export function activate(context: vscode.ExtensionContext) {
         let ret = path.join('/');
 
         if (!fs.existsSync(ret)) {
-            vscode.window.showInformationMessage(`invalid include filepath: ${include}`);
+            vscode.window.showErrorMessage(`invalid include filepath: ${include}`);
             console.error(`invalid include: ${include}`);
         };
 
@@ -212,10 +213,30 @@ export function activate(context: vscode.ExtensionContext) {
         return functionLib;
     };
 
+    function PeekFile() {
+        const editor = vscode.window.activeTextEditor;
+        let selectionStart = editor.selection.start;
+        let wordRange = editor.document.getWordRangeAtPosition(selectionStart);
+        let selectedText = editor.document.getText(wordRange);
+
+        for (const key in functionsLib) {
+            let element = functionsLib[key];
+            if (element['Name'] == selectedText) {
+                let functionPath = (missionRoot + '/' + element['file']).split('/').join('\\');
+                let fncUri = vscode.Uri.file(functionPath);
+                vscode.window.showTextDocument(fncUri);
+                return
+            }
+        }
+        console.log(selectedText);
+    };
 
     context.subscriptions.push(vscode.commands.registerCommand('a3cfgfunctions.recompile', () => {
-        vscode.window.showInformationMessage('Recompiling');
         parseDescription();
+    }));
+
+    context.subscriptions.push(vscode.commands.registerTextEditorCommand('a3cfgfunctions.peek', () => {
+        PeekFile()
     }));
 
 }
