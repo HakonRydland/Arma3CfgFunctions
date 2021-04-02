@@ -12,10 +12,8 @@ Note for consistent results it is recommended to seth both paths in the settings
 2. open Command Palette and run `Arma 3: Recompile CfgFunctions`
 3. Recompile when ever you add a function to CfgFunctions
 
-
 * Auto completion is done on typing with language `sqf`
 * Function peeking is done trough editor context menu
-
 * Hovers are shown on function hover
 
 ## Extension Settings
@@ -29,15 +27,19 @@ Both paths are workspace relative
 
 ## Release Notes
 
+
+### [1.1.1]
+
+* Improved header extraction
+
 ### [1.1.0]
 
 * Added file peeking in the editor context menu
-* added header hovers (first 12 lines, header must be in block ```/*Header content*/```)
+* added header hovers (~~first 12 lines,~~ header must be in block ```/*Header content*/```)
 
 ### 1.0.0
 
 Initial release of Arma 3 CfgFunctions
-
 
 ## Known issues
 

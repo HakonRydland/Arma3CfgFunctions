@@ -300,22 +300,30 @@ function PeekFile() {
 ;
 function getHeader(uri) {
     return __awaiter(this, void 0, void 0, function* () {
+        //get text from file
         let text = fs.readFileSync(uri.fsPath).toString();
         if (text === undefined) {
             return "";
         }
         ;
+        //find header and extract it
         if (!text.includes('/*')) {
             return "";
         }
         ;
-        let startIndex = text.indexOf('/*');
-        let endIndex = text.indexOf('*/');
-        let header = text.substr(startIndex + 2, endIndex);
+        let header = text.split('/*')[1];
+        if (header === undefined) {
+            return "";
+        }
+        header = header.split('*/')[0];
+        //trim new line
         if (header.startsWith('\r\n')) {
             header = header.substr(2, header.length);
         }
-        //header = text.toString().split('*')[1];
+        if (header.endsWith('\r\n')) {
+            header = header.substr(0, header.length - 2);
+        }
+        //verify we actually have a header
         if (header == text || header === undefined) {
             return "";
         }
