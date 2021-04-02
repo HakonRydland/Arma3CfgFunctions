@@ -2,6 +2,11 @@
 
 All notable changes to the "Arma 3 Cfg Functions" extension will be documented in this file.
 
+## [1.1.2]
+
+* Added auto compile on startup
+* added setting: `Disable Auto complete` Requires restart between setting change
+* added setting: `Disable Header Hover` Requires restart between setting change
 
 ## [1.1.1]
 
