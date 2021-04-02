@@ -47,7 +47,7 @@ async function parseDescription(context: vscode.ExtensionContext) {
     updateMissionRoot();
     missionRoot = missionRoot + '/';
     if (config.has("MissionRoot")) {
-        let path = missionRoot + '/' + config.get("MissionRoot");
+        let path = missionRoot + config.get("MissionRoot");
         if (path != "") {
             missionRoot = path.split('\\').join('/');
         };
@@ -94,7 +94,7 @@ async function parseDescription(context: vscode.ExtensionContext) {
         let parsedjson = parse(fs.readFileSync(workingFolderPath+"/cfgfunctions").toString());
         fs.unlinkSync(workingFolderPath+"/cfgfunctions");
 
-        functionsLib = generateLibrary(parsedjson);
+        functionsLib = await generateLibrary(parsedjson);
         console.log(functionsLib);
 
         //remove old completion items and add new completion items
@@ -111,6 +111,29 @@ async function parseDescription(context: vscode.ExtensionContext) {
             context.subscriptions.push(disposable);
             completionItems.push(disposable);
         };
+
+        for (const key in functionsLib) {
+            const element = functionsLib[key];
+            if (!(element.Header == '')) {
+                let disposable = vscode.languages.registerHoverProvider('sqf', {
+                    provideHover(document, position, token) {
+
+                        const range = document.getWordRangeAtPosition(position);
+                        const word = document.getText(range);
+
+                        if (word == element.Name) {
+
+                            return new vscode.Hover({
+                                language: "plaintext",
+                                value: element.Header
+                            });
+                        }
+                    }
+                });
+                context.subscriptions.push(disposable);
+                completionItems.push(disposable);
+            };
+        }
         vscode.window.showInformationMessage('Recompiled');
     });
 };
@@ -159,7 +182,7 @@ async function parseFile(fd:number, filePath:string) {
     });
 };
 
-function generateLibrary(cfgFunctionsJSON:JSON) {
+async function generateLibrary(cfgFunctionsJSON:JSON) {
 
     function setPropertyIfExists (object: Object, key: string, Atributes: Object ) {
         if (Object.getOwnPropertyDescriptor(object, key)) {
@@ -176,7 +199,11 @@ function generateLibrary(cfgFunctionsJSON:JSON) {
         , 'Tag': ""
         , 'file': "functions"
         , 'ext': ".sqf"
+        , 'Uri': vscode.Uri.prototype
+        , 'Header': ""
     };
+
+    let atributeKeys = ['Tag','file','ext']
 
     for (const Tag in cfgFunctionsJSON) {
         let NamespaceAtributes = Object.assign({}, MasterAtributes);
@@ -197,6 +224,7 @@ function generateLibrary(cfgFunctionsJSON:JSON) {
 
             //Functions
             for (const functionName in Folder) {
+                if (atributeKeys.includes(functionName)) {continue};
                 const func = Folder[functionName];
                 let functionAtributes = Object.assign( {}, FolderAtributes);
 
@@ -208,9 +236,14 @@ function generateLibrary(cfgFunctionsJSON:JSON) {
                 Object.assign(functionAtributes, { file: functionAtributes.file + "\\fn_" + functionName + functionAtributes.ext });
                 setPropertyIfExists(func, 'file', functionAtributes);
 
+                Object.assign(functionAtributes, { Uri: vscode.Uri.file(missionRoot + '/' + functionAtributes.file)});
+                let Header = await getHeader(functionAtributes.Uri);
+                Object.assign(functionAtributes, { Header: Header})
+
                 //Registre function in library
-                let size = Object.keys(functionLib).length;
-                functionLib[size +1] = functionAtributes;
+                let entrySring = '{"'+functionAtributes.Name+'":'+JSON.stringify(functionAtributes)+'}';
+                let entry = JSON.parse(entrySring);
+                Object.assign(functionLib, entry);
             }
         }
     };
@@ -218,20 +251,36 @@ function generateLibrary(cfgFunctionsJSON:JSON) {
 };
 
 function PeekFile() {
+    //find what is selected
     const editor = vscode.window.activeTextEditor;
     let selectionStart = editor.selection.start;
+    if (!selectionStart) {
+        selectionStart = editor.selection.active;
+    };
     let wordRange = editor.document.getWordRangeAtPosition(selectionStart);
     let selectedText = editor.document.getText(wordRange);
 
-    for (const key in functionsLib) {
-        let element = functionsLib[key];
-        if (element['Name'] == selectedText) {
-            let functionPath = (missionRoot + '/' + element['file']).split('/').join('\\');
-            let fncUri = vscode.Uri.file(functionPath);
-            vscode.window.showTextDocument(fncUri);
-            return
-        }
-    }
+    //find function in library
+    let index = Object.getOwnPropertyNames(functionsLib).find((value:string) => value == selectedText);
+    if (index === undefined) {vscode.window.showInformationMessage(`Could not find function definition: ${selectedText}`) ;return};
+
+    //open file
+    let functionPath = (missionRoot + '/' + functionsLib[index]['file']).split('/').join('\\');
+    let fncUri = vscode.Uri.file(functionPath);
+    vscode.window.showTextDocument(fncUri);
+};
+
+async function getHeader(uri: vscode.Uri) {
+    let text = fs.readFileSync(uri.fsPath).toString();
+    if (text === undefined) {return ""};
+    if (!text.includes('/*')) {return ""};
+    let startIndex = text.indexOf('/*');
+    let endIndex = text.indexOf('*/');
+    let header = text.substr(startIndex+2, endIndex);
+    if (header.startsWith('\r\n')) {header = header.substr(2, header.length)}
+    //header = text.toString().split('*')[1];
+    if (header == text || header === undefined) {return ""};
+    return header
 };
 
 export function activate(context: vscode.ExtensionContext) {

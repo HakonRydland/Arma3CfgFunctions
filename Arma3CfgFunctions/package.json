@@ -7,13 +7,20 @@
       "type": "git",
       "url": "https://github.com/HakonRydland/Arma3CfgFunctions"
   },
-  "version": "1.0.1",
+"version": "1.1.0",
+"icon": "img/icon.png",
   "engines": {
     "vscode": "^1.54.0"
   },
   "categories": [
     "Other"
   ],
+"keywords": [
+    "Arma 3",
+    "sqf",
+    "functions",
+    "intelisense"
+],
   "activationEvents": [
     "onCommand:a3cfgfunctions.recompile",
     "onCommand:a3cfgfunctions.peek"
@@ -29,8 +36,7 @@
       {
           "command": "a3cfgfunctions.peek",
           "category": "Arma 3",
-          "title": "Peek Function definition",
-          "enablement": "editorHasSelection"
+        "title": "Peek Function definition"
       }
     ],
     "configuration": {
@@ -50,7 +56,7 @@
     },
     "menus": {"editor/context": [
             {
-                "when": "editorHasSelection",
+                "when": "true",
                 "command": "a3cfgfunctions.peek",
                 "group": "navigation"
             }

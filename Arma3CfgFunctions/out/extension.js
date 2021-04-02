@@ -56,7 +56,7 @@ function parseDescription(context) {
         updateMissionRoot();
         missionRoot = missionRoot + '/';
         if (config.has("MissionRoot")) {
-            let path = missionRoot + '/' + config.get("MissionRoot");
+            let path = missionRoot + config.get("MissionRoot");
             if (path != "") {
                 missionRoot = path.split('\\').join('/');
             }
@@ -116,7 +116,7 @@ function parseDescription(context) {
             //parse to JSON with external lib and deleteTmpFile
             let parsedjson = class_parser_1.parse(fs.readFileSync(workingFolderPath + "/cfgfunctions").toString());
             fs.unlinkSync(workingFolderPath + "/cfgfunctions");
-            functionsLib = generateLibrary(parsedjson);
+            functionsLib = yield generateLibrary(parsedjson);
             console.log(functionsLib);
             //remove old completion items and add new completion items
             disposCompletionItems();
@@ -133,6 +133,26 @@ function parseDescription(context) {
                 completionItems.push(disposable);
             }
             ;
+            for (const key in functionsLib) {
+                const element = functionsLib[key];
+                if (!(element.Header == '')) {
+                    let disposable = vscode.languages.registerHoverProvider('sqf', {
+                        provideHover(document, position, token) {
+                            const range = document.getWordRangeAtPosition(position);
+                            const word = document.getText(range);
+                            if (word == element.Name) {
+                                return new vscode.Hover({
+                                    language: "plaintext",
+                                    value: element.Header
+                                });
+                            }
+                        }
+                    });
+                    context.subscriptions.push(disposable);
+                    completionItems.push(disposable);
+                }
+                ;
+            }
             vscode.window.showInformationMessage('Recompiled');
         }));
     });
@@ -192,70 +212,116 @@ function parseFile(fd, filePath) {
 }
 ;
 function generateLibrary(cfgFunctionsJSON) {
-    function setPropertyIfExists(object, key, Atributes) {
-        if (Object.getOwnPropertyDescriptor(object, key)) {
-            Atributes[key] = object[key];
+    return __awaiter(this, void 0, void 0, function* () {
+        function setPropertyIfExists(object, key, Atributes) {
+            if (Object.getOwnPropertyDescriptor(object, key)) {
+                Atributes[key] = object[key];
+            }
+            ;
         }
         ;
-    }
-    ;
-    console.log("Generating function lib");
-    let functionLib = {};
-    //Default attributes
-    let MasterAtributes = {
-        'Name': "",
-        'Tag': "",
-        'file': "functions",
-        'ext': ".sqf"
-    };
-    for (const Tag in cfgFunctionsJSON) {
-        let NamespaceAtributes = Object.assign({}, MasterAtributes);
-        const Namespace = cfgFunctionsJSON[Tag];
-        //Namespace traits
-        NamespaceAtributes.Tag = Tag;
-        setPropertyIfExists(Namespace, 'file', NamespaceAtributes);
-        for (const FolderName in Namespace) {
-            const Folder = Namespace[FolderName];
-            let FolderAtributes = Object.assign({}, NamespaceAtributes);
-            FolderAtributes.file = `${NamespaceAtributes.file}\\${FolderName}`;
-            //Folder traits
-            setPropertyIfExists(Folder, 'file', FolderAtributes);
-            setPropertyIfExists(Folder, 'Tag', FolderAtributes);
-            //Functions
-            for (const functionName in Folder) {
-                const func = Folder[functionName];
-                let functionAtributes = Object.assign({}, FolderAtributes);
-                //Function traits
-                setPropertyIfExists(func, 'ext', functionAtributes);
-                setPropertyIfExists(func, 'Tag', functionAtributes);
-                //Assign default call name and file path
-                Object.assign(functionAtributes, { Name: functionAtributes.Tag + "_fnc_" + functionName });
-                Object.assign(functionAtributes, { file: functionAtributes.file + "\\fn_" + functionName + functionAtributes.ext });
-                setPropertyIfExists(func, 'file', functionAtributes);
-                //Registre function in library
-                let size = Object.keys(functionLib).length;
-                functionLib[size + 1] = functionAtributes;
+        console.log("Generating function lib");
+        let functionLib = {};
+        //Default attributes
+        let MasterAtributes = {
+            'Name': "",
+            'Tag': "",
+            'file': "functions",
+            'ext': ".sqf",
+            'Uri': vscode.Uri.prototype,
+            'Header': ""
+        };
+        let atributeKeys = ['Tag', 'file', 'ext'];
+        for (const Tag in cfgFunctionsJSON) {
+            let NamespaceAtributes = Object.assign({}, MasterAtributes);
+            const Namespace = cfgFunctionsJSON[Tag];
+            //Namespace traits
+            NamespaceAtributes.Tag = Tag;
+            setPropertyIfExists(Namespace, 'file', NamespaceAtributes);
+            for (const FolderName in Namespace) {
+                const Folder = Namespace[FolderName];
+                let FolderAtributes = Object.assign({}, NamespaceAtributes);
+                FolderAtributes.file = `${NamespaceAtributes.file}\\${FolderName}`;
+                //Folder traits
+                setPropertyIfExists(Folder, 'file', FolderAtributes);
+                setPropertyIfExists(Folder, 'Tag', FolderAtributes);
+                //Functions
+                for (const functionName in Folder) {
+                    if (atributeKeys.includes(functionName)) {
+                        continue;
+                    }
+                    ;
+                    const func = Folder[functionName];
+                    let functionAtributes = Object.assign({}, FolderAtributes);
+                    //Function traits
+                    setPropertyIfExists(func, 'ext', functionAtributes);
+                    setPropertyIfExists(func, 'Tag', functionAtributes);
+                    //Assign default call name and file path
+                    Object.assign(functionAtributes, { Name: functionAtributes.Tag + "_fnc_" + functionName });
+                    Object.assign(functionAtributes, { file: functionAtributes.file + "\\fn_" + functionName + functionAtributes.ext });
+                    setPropertyIfExists(func, 'file', functionAtributes);
+                    Object.assign(functionAtributes, { Uri: vscode.Uri.file(missionRoot + '/' + functionAtributes.file) });
+                    let Header = yield getHeader(functionAtributes.Uri);
+                    Object.assign(functionAtributes, { Header: Header });
+                    //Registre function in library
+                    let entrySring = '{"' + functionAtributes.Name + '":' + JSON.stringify(functionAtributes) + '}';
+                    let entry = JSON.parse(entrySring);
+                    Object.assign(functionLib, entry);
+                }
             }
         }
-    }
-    ;
-    return functionLib;
+        ;
+        return functionLib;
+    });
 }
 ;
 function PeekFile() {
+    //find what is selected
     const editor = vscode.window.activeTextEditor;
     let selectionStart = editor.selection.start;
+    if (!selectionStart) {
+        selectionStart = editor.selection.active;
+    }
+    ;
     let wordRange = editor.document.getWordRangeAtPosition(selectionStart);
     let selectedText = editor.document.getText(wordRange);
-    for (const key in functionsLib) {
-        let element = functionsLib[key];
-        if (element['Name'] == selectedText) {
-            let functionPath = (missionRoot + '/' + element['file']).split('/').join('\\');
-            let fncUri = vscode.Uri.file(functionPath);
-            vscode.window.showTextDocument(fncUri);
-            return;
-        }
+    //find function in library
+    let index = Object.getOwnPropertyNames(functionsLib).find((value) => value == selectedText);
+    if (index === undefined) {
+        vscode.window.showInformationMessage(`Could not find function definition: ${selectedText}`);
+        return;
     }
+    ;
+    //open file
+    let functionPath = (missionRoot + '/' + functionsLib[index]['file']).split('/').join('\\');
+    let fncUri = vscode.Uri.file(functionPath);
+    vscode.window.showTextDocument(fncUri);
+}
+;
+function getHeader(uri) {
+    return __awaiter(this, void 0, void 0, function* () {
+        let text = fs.readFileSync(uri.fsPath).toString();
+        if (text === undefined) {
+            return "";
+        }
+        ;
+        if (!text.includes('/*')) {
+            return "";
+        }
+        ;
+        let startIndex = text.indexOf('/*');
+        let endIndex = text.indexOf('*/');
+        let header = text.substr(startIndex + 2, endIndex);
+        if (header.startsWith('\r\n')) {
+            header = header.substr(2, header.length);
+        }
+        //header = text.toString().split('*')[1];
+        if (header == text || header === undefined) {
+            return "";
+        }
+        ;
+        return header;
+    });
 }
 ;
 function activate(context) {
