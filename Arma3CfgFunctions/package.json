@@ -32,12 +32,14 @@
       {
         "command": "a3cfgfunctions.recompile",
         "category": "Arma 3",
-        "title": "Recompile CfgFunctions"
+        "title": "Recompile CfgFunctions",
+        "enablement": "workbenchState != empty"
       },
       {
-          "command": "a3cfgfunctions.peek",
-          "category": "Arma 3",
-        "title": "Peek Function definition"
+        "command": "a3cfgfunctions.peek",
+        "category": "Arma 3",
+        "title": "Peek Function definition",
+        "enablement": "editorTextFocus"
       }
     ],
     "configuration": {

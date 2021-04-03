@@ -21,7 +21,8 @@ function updateMissionRoot(){
     let path = vscode.workspace.workspaceFolders[0].uri.path;
     missionRoot = path.substr(1, path.length - 1);
 };
-updateMissionRoot();
+if (!vscode.workspace.workspaceFolders === undefined) { updateMissionRoot() };
+
 
 async function parseDescription(context: vscode.ExtensionContext) {
 
@@ -38,8 +39,10 @@ async function parseDescription(context: vscode.ExtensionContext) {
         if (path != "") {
             descriptionPath = path.split('\\').join('/');
         };
-    }
-    console.info(`Description.ext path: ${descriptionPath}`);
+    };
+    let description = await vscode.workspace.findFiles(descriptionPath, "", 1);
+    if (description.length == 0) { vscode.window.showWarningMessage("Arma3 CfgFunctions | Can't find description.ext, aborting!"); return };
+    console.info(`Description.ext path: ${description[0].fsPath}`);
 
     //mission root
     updateMissionRoot();
@@ -48,12 +51,15 @@ async function parseDescription(context: vscode.ExtensionContext) {
         let path = missionRoot + config.get("MissionRoot");
         if (path != "") {
             missionRoot = path.split('\\').join('/');
+        } else {//if no path specified assume mission root is where description is
+            let descriptionPathArray = description[0].fsPath.split('/');
+            descriptionPathArray.pop();
+            missionRoot = descriptionPathArray.join('/');
         };
     };
     console.info(`Mission Root: ${missionRoot}`);
 
-    let file = await vscode.workspace.findFiles(descriptionPath, "", 1);
-    vscode.workspace.openTextDocument(file[0]).then(async (document) => {
+    vscode.workspace.openTextDocument(description[0]).then(async (document) => {
         if (document.isDirty) { vscode.window.showInformationMessage(`Arma3 CfgFunctions | File unsaved, aborting. | Path: ${descriptionPath}`);};
         //flag declaration
         let cfgFunctionsFound = false;
@@ -296,7 +302,7 @@ async function getHeader(uri: vscode.Uri) {
 export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(vscode.commands.registerCommand('a3cfgfunctions.recompile', () => parseDescription(context)) );
     context.subscriptions.push(vscode.commands.registerTextEditorCommand('a3cfgfunctions.peek', () => PeekFile()) );
-    parseDescription(context)
+    if (vscode.workspace.workspaceFolders === undefined) { parseDescription(context) };
 }
 
 export function deactivate() {

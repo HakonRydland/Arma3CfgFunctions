@@ -32,10 +32,12 @@ function updateMissionRoot() {
     missionRoot = path.substr(1, path.length - 1);
 }
 ;
-updateMissionRoot();
+if (!vscode.workspace.workspaceFolders === undefined) {
+    updateMissionRoot();
+}
+;
 function parseDescription(context) {
     return __awaiter(this, void 0, void 0, function* () {
-        vscode.window.showInformationMessage('Recompiling');
         //working folder
         let workingFolderPath = missionRoot + '/.vscode';
         if (!fs.existsSync(workingFolderPath)) {
@@ -51,7 +53,14 @@ function parseDescription(context) {
             }
             ;
         }
-        console.info(`Description.ext path: ${descriptionPath}`);
+        ;
+        let description = yield vscode.workspace.findFiles(descriptionPath, "", 1);
+        if (description.length == 0) {
+            vscode.window.showWarningMessage("Arma3 CfgFunctions | Can't find description.ext, aborting!");
+            return;
+        }
+        ;
+        console.info(`Description.ext path: ${description[0].fsPath}`);
         //mission root
         updateMissionRoot();
         missionRoot = missionRoot + '/';
@@ -60,14 +69,18 @@ function parseDescription(context) {
             if (path != "") {
                 missionRoot = path.split('\\').join('/');
             }
+            else { //if no path specified assume mission root is where description is
+                let descriptionPathArray = description[0].fsPath.split('/');
+                descriptionPathArray.pop();
+                missionRoot = descriptionPathArray.join('/');
+            }
             ;
         }
         ;
         console.info(`Mission Root: ${missionRoot}`);
-        let file = yield vscode.workspace.findFiles(descriptionPath, "", 1);
-        vscode.workspace.openTextDocument(file[0]).then((document) => __awaiter(this, void 0, void 0, function* () {
+        vscode.workspace.openTextDocument(description[0]).then((document) => __awaiter(this, void 0, void 0, function* () {
             if (document.isDirty) {
-                vscode.window.showInformationMessage(`File unsaved, aborting. | Path: ${descriptionPath}`);
+                vscode.window.showInformationMessage(`Arma3 CfgFunctions | File unsaved, aborting. | Path: ${descriptionPath}`);
             }
             ;
             //flag declaration
@@ -159,7 +172,7 @@ function parseDescription(context) {
                 }
                 ;
             }
-            vscode.window.showInformationMessage('Recompiled');
+            vscode.window.showInformationMessage('Arma3 CfgFunctions | Recompiled');
         }));
     });
 }
@@ -180,7 +193,7 @@ function parsePath(currentPath, include) {
     ;
     let ret = path.join('/');
     if (!fs.existsSync(ret)) {
-        vscode.window.showErrorMessage(`invalid include filepath: ${include}`);
+        vscode.window.showErrorMessage(`Arma3 CfgFunctions | Invalid include filepath: ${include}`);
         console.error(`invalid include: ${ret}`);
     }
     ;
@@ -294,7 +307,7 @@ function PeekFile() {
     //find function in library
     let index = Object.getOwnPropertyNames(functionsLib).find((value) => value == selectedText);
     if (index === undefined) {
-        vscode.window.showInformationMessage(`Could not find function definition: ${selectedText}`);
+        vscode.window.showInformationMessage(`Arma3 CfgFunctions | Could not find function definition: ${selectedText}`);
         return;
     }
     ;
@@ -323,6 +336,10 @@ function getHeader(uri) {
         }
         header = header.split('*/')[0];
         //trim new line
+        if (header == text || header === undefined) {
+            return "";
+        }
+        ;
         if (header.startsWith('\r\n')) {
             header = header.substr(2, header.length);
         }
@@ -341,7 +358,10 @@ function getHeader(uri) {
 function activate(context) {
     context.subscriptions.push(vscode.commands.registerCommand('a3cfgfunctions.recompile', () => parseDescription(context)));
     context.subscriptions.push(vscode.commands.registerTextEditorCommand('a3cfgfunctions.peek', () => PeekFile()));
-    parseDescription(context);
+    if (vscode.workspace.workspaceFolders === undefined) {
+        parseDescription(context);
+    }
+    ;
 }
 exports.activate = activate;
 function deactivate() {
