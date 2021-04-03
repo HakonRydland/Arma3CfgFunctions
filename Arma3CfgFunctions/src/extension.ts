@@ -264,10 +264,10 @@ function PeekFile() {
         selectionStart = editor.selection.active;
     };
     let wordRange = editor.document.getWordRangeAtPosition(selectionStart);
-    let selectedText = editor.document.getText(wordRange);
+    let selectedText = editor.document.getText(wordRange).toLowerCase();
 
     //find function in library
-    let index = Object.getOwnPropertyNames(functionsLib).find((value:string) => value == selectedText);
+    let index = Object.getOwnPropertyNames(functionsLib).find((value: string) => value.toLowerCase() == selectedText);
     if (index === undefined) { vscode.window.showInformationMessage(`Arma3 CfgFunctions | Could not find function definition: ${selectedText}`); return };
 
     //open file
