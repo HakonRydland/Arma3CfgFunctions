@@ -172,7 +172,6 @@ function parseDescription(context) {
                 }
                 ;
             }
-            vscode.window.showInformationMessage('Arma3 CfgFunctions | Recompiled');
         }));
     });
 }

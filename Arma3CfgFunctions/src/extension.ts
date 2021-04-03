@@ -142,7 +142,6 @@ async function parseDescription(context: vscode.ExtensionContext) {
                 };
             };
         }
-        vscode.window.showInformationMessage('Arma3 CfgFunctions | Recompiled');
     });
 };
 
@@ -270,7 +269,7 @@ function PeekFile() {
 
     //find function in library
     let index = Object.getOwnPropertyNames(functionsLib).find((value:string) => value == selectedText);
-    if (index === undefined) {vscode.window.showInformationMessage(`Arma3 CfgFunctions | Could not find function definition: ${selectedText}`) ;return};
+    if (index === undefined) { vscode.window.showInformationMessage(`Arma3 CfgFunctions | Could not find function definition: ${selectedText}`); return };
 
     //open file
     let functionPath = (missionRoot + '/' + functionsLib[index]['file']).split('/').join('\\');
