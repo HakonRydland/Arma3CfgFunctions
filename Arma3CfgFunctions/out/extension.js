@@ -157,7 +157,7 @@ function parseDescription(context) {
                             provideHover(document, position, token) {
                                 const range = document.getWordRangeAtPosition(position);
                                 const word = document.getText(range);
-                                if (word == element.Name) {
+                                if (word.toLowerCase() == element.Name.toLowerCase()) {
                                     return new vscode.Hover({
                                         language: "plaintext",
                                         value: element.Header

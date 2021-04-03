@@ -127,8 +127,7 @@ async function parseDescription(context: vscode.ExtensionContext) {
 
                             const range = document.getWordRangeAtPosition(position);
                             const word = document.getText(range);
-
-                            if (word == element.Name) {
+                            if (word.toLowerCase() == element.Name.toLowerCase()) {
 
                                 return new vscode.Hover({
                                     language: "plaintext",
