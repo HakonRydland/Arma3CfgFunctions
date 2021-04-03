@@ -303,6 +303,21 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(vscode.commands.registerCommand('a3cfgfunctions.recompile', () => parseDescription(context)) );
     context.subscriptions.push(vscode.commands.registerTextEditorCommand('a3cfgfunctions.peek', () => PeekFile()) );
     if (vscode.workspace.workspaceFolders === undefined) { parseDescription(context) };
+
+    //events
+    context.subscriptions.push(vscode.workspace.onDidSaveTextDocument((Document: vscode.TextDocument) => {
+        if (Document.languageId == "sqf" || Document.languageId == "ext") {
+            vscode.commands.executeCommand("a3cfgfunctions.recompile");
+        };
+    }))
+
+    context.subscriptions.push(vscode.workspace.onDidChangeWorkspaceFolders(() => {
+        vscode.commands.executeCommand("a3cfgfunctions.recompile");
+    }))
+
+    context.subscriptions.push(vscode.workspace.onDidChangeConfiguration(() => {
+        vscode.commands.executeCommand("a3cfgfunctions.recompile");
+    }))
 }
 
 export function deactivate() {

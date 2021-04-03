@@ -1,101 +1,102 @@
 {
-  "name": "a3cfgfunctions",
-  "displayName": "Arma 3 CfgFunctions auto completion",
-  "description": "Lets you create auto completions for your mission functions by running the command 'Recompile CfgFunctions'. has custom description.ext path and mission root path in settings",
-  "publisher": "HkonRRydland",
-  "repository": {
-      "type": "git",
-      "url": "https://github.com/HakonRydland/Arma3CfgFunctions"
-  },
-"version": "1.1.2",
-"icon": "img/icon.png",
-  "engines": {
-    "vscode": "^1.54.0"
-  },
-  "categories": [
-    "Other"
-  ],
-"keywords": [
-    "Arma 3",
-    "sqf",
-    "functions",
-    "intelisense"
-],
-  "activationEvents": [
-    "onStartupFinished",
-    "onCommand:a3cfgfunctions.recompile",
-    "onCommand:a3cfgfunctions.peek"
-  ],
-  "main": "./out/extension.js",
-  "contributes": {
-    "commands": [
-      {
-        "command": "a3cfgfunctions.recompile",
-        "category": "Arma 3",
-        "title": "Recompile CfgFunctions",
-        "enablement": "workbenchState != empty"
-      },
-      {
-        "command": "a3cfgfunctions.peek",
-        "category": "Arma 3",
-        "title": "Peek Function definition",
-        "enablement": "editorTextFocus"
-      }
-    ],
-    "configuration": {
-      "title": "Arma3CfgFunctions",
-      "properties": {
-        "Arma3CfgFunctions.DescriptionPath": {
-          "type": "string",
-          "default": "",
-          "description": "Path to the Description.ext"
-        },
-        "Arma3CfgFunctions.MissionRoot": {
-          "type": "string",
-          "default": "",
-          "description": "Path to the root of the mission"
-        },
-        "Arma3CfgFunctions.DisableAutoComplete": {
-            "type": "boolean",
-            "default": false,
-            "description": "Disable the auto completion feature. Rquires restart"
-        },
-        "Arma3CfgFunctions.DisableHeaderHover": {
-            "type": "boolean",
-            "default": false,
-            "description": "Disable the Header hover feature. Rquires restart"
-        }
-      }
+    "name": "a3cfgfunctions",
+    "displayName": "Arma 3 CfgFunctions",
+    "description": "Allows you to Auto complete, peek, and preview headers for your mission functions",
+    "publisher": "HkonRRydland",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/HakonRydland/Arma3CfgFunctions"
     },
-    "menus": {"editor/context": [
+    "version": "1.1.2",
+    "icon": "img/icon.png",
+    "engines": {
+        "vscode": "^1.54.0"
+    },
+    "categories": [
+        "Other"
+    ],
+    "keywords": [
+        "Arma 3",
+        "sqf",
+        "functions",
+        "intelisense"
+    ],
+    "activationEvents": [
+        "*",
+        "onCommand:a3cfgfunctions.recompile",
+        "onCommand:a3cfgfunctions.peek"
+    ],
+    "main": "./out/extension.js",
+    "contributes": {
+        "commands": [
             {
-                "when": "true",
+                "command": "a3cfgfunctions.recompile",
+                "category": "Arma 3",
+                "title": "Recompile CfgFunctions",
+                "enablement": "workbenchState != empty"
+            },
+            {
                 "command": "a3cfgfunctions.peek",
-                "group": "navigation"
+                "category": "Arma 3",
+                "title": "Peek Function definition",
+                "enablement": "editorTextFocus"
             }
-        ]
+        ],
+        "configuration": {
+        "title": "Arma3CfgFunctions",
+        "properties": {
+            "Arma3CfgFunctions.DescriptionPath": {
+                "type": "string",
+                "default": "",
+                "description": "Path to the Description.ext"
+            },
+            "Arma3CfgFunctions.MissionRoot": {
+                "type": "string",
+                "default": "",
+                "description": "Path to the root of the mission"
+            },
+            "Arma3CfgFunctions.DisableAutoComplete": {
+                "type": "boolean",
+                "default": false,
+                "description": "Disable the auto completion feature. Rquires restart"
+            },
+            "Arma3CfgFunctions.DisableHeaderHover": {
+                "type": "boolean",
+                "default": false,
+                "description": "Disable the Header hover feature. Rquires restart"
+            }
+        }
+        },
+        "menus": {
+            "editor/context": [
+                {
+                    "when": "true",
+                    "command": "a3cfgfunctions.peek",
+                    "group": "navigation"
+                }
+            ]
+        }
+    },
+    "scripts": {
+        "vscode:prepublish": "npm run compile",
+        "compile": "tsc -p ./",
+        "watch": "tsc -watch -p ./",
+        "pretest": "npm run compile && npm run lint",
+        "lint": "eslint src --ext ts",
+        "test": "node ./out/test/runTest.js"
+    },
+    "devDependencies": {
+        "@types/fs-extra": "^9.0.9",
+        "@types/glob": "^7.1.3",
+        "@types/mocha": "^8.0.4",
+        "@types/node": "^12.11.7",
+        "@types/vscode": "^1.54.0",
+        "@typescript-eslint/eslint-plugin": "^4.14.1",
+        "@typescript-eslint/parser": "^4.14.1",
+        "eslint": "^7.19.0",
+        "glob": "^7.1.6",
+        "mocha": "^8.2.1",
+        "typescript": "^4.1.3",
+        "vscode-test": "^1.5.0"
     }
-  },
-  "scripts": {
-    "vscode:prepublish": "npm run compile",
-    "compile": "tsc -p ./",
-    "watch": "tsc -watch -p ./",
-    "pretest": "npm run compile && npm run lint",
-    "lint": "eslint src --ext ts",
-    "test": "node ./out/test/runTest.js"
-  },
-  "devDependencies": {
-    "@types/fs-extra": "^9.0.9",
-    "@types/glob": "^7.1.3",
-    "@types/mocha": "^8.0.4",
-    "@types/node": "^12.11.7",
-    "@types/vscode": "^1.54.0",
-    "@typescript-eslint/eslint-plugin": "^4.14.1",
-    "@typescript-eslint/parser": "^4.14.1",
-    "eslint": "^7.19.0",
-    "glob": "^7.1.6",
-    "mocha": "^8.2.1",
-    "typescript": "^4.1.3",
-    "vscode-test": "^1.5.0"
-  }
 }

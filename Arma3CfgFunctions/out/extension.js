@@ -362,6 +362,19 @@ function activate(context) {
         parseDescription(context);
     }
     ;
+    //events
+    context.subscriptions.push(vscode.workspace.onDidSaveTextDocument((Document) => {
+        if (Document.languageId == "sqf" || Document.languageId == "ext") {
+            vscode.commands.executeCommand("a3cfgfunctions.recompile");
+        }
+        ;
+    }));
+    context.subscriptions.push(vscode.workspace.onDidChangeWorkspaceFolders(() => {
+        vscode.commands.executeCommand("a3cfgfunctions.recompile");
+    }));
+    context.subscriptions.push(vscode.workspace.onDidChangeConfiguration(() => {
+        vscode.commands.executeCommand("a3cfgfunctions.recompile");
+    }));
 }
 exports.activate = activate;
 function deactivate() {

@@ -7,6 +7,8 @@ All notable changes to the "Arma 3 Cfg Functions" extension will be documented i
 * Added auto compile on startup
 * added setting: `Disable Auto complete` Requires restart between setting change
 * added setting: `Disable Header Hover` Requires restart between setting change
+* now recompiles on sqf and ext file saves (language ID), worspace folder change and config change
+* updated extension display name and description to reflect new functionality
 
 ## [1.1.1]
 
