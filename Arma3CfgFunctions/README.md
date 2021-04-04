@@ -8,7 +8,7 @@ Note for consistent results it is recommended to seth both paths in the settings
 
 ## How to use
 
-1. Set relative paths to both `mission root` and `description.ext`
+1. Set relative paths to both `mission root` and `description.ext` in the extension settings.
 2. open Command Palette and run `Arma 3: Recompile CfgFunctions`
 3. Recompile when ever you add a function to CfgFunctions
 
