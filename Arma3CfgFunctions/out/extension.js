@@ -14,9 +14,7 @@ const vscode = require("vscode");
 const fs = require("fs");
 const class_parser_1 = require("./class-parser");
 //base defines
-let config = vscode.workspace.getConfiguration('Arma3CfgFunctions');
 let functionsLib = {};
-let missionRoot = "";
 let completionItems = [vscode.Disposable.prototype];
 completionItems.pop();
 //functions
@@ -28,8 +26,19 @@ function disposCompletionItems() {
 }
 ;
 function updateMissionRoot() {
-    let path = vscode.workspace.workspaceFolders[0].uri.path;
-    missionRoot = path.substr(1, path.length - 1);
+    let config = vscode.workspace.getConfiguration('Arma3CfgFunctions');
+    let workspaceFolders = vscode.workspace.workspaceFolders;
+    if (workspaceFolders === undefined) {
+        return "";
+    }
+    ;
+    let missionRoot = workspaceFolders[0].uri.fsPath;
+    if (config.has("MissionRoot")) {
+        missionRoot = (missionRoot + "/" + config.get("MissionRoot")).split('\\').join('/');
+    }
+    ;
+    console.debug("Mission root path: ", missionRoot);
+    return missionRoot;
 }
 ;
 if (!vscode.workspace.workspaceFolders === undefined) {
@@ -38,12 +47,7 @@ if (!vscode.workspace.workspaceFolders === undefined) {
 ;
 function parseDescription(context) {
     return __awaiter(this, void 0, void 0, function* () {
-        //working folder
-        let workingFolderPath = missionRoot + '/.vscode';
-        if (!fs.existsSync(workingFolderPath)) {
-            fs.mkdirSync(workingFolderPath);
-        }
-        ;
+        let config = vscode.workspace.getConfiguration('Arma3CfgFunctions');
         //root description.ext path
         let descriptionPath = '**/*description.ext';
         if (config.has('DescriptionPath')) {
@@ -62,22 +66,13 @@ function parseDescription(context) {
         ;
         console.info(`Description.ext path: ${description[0].fsPath}`);
         //mission root
-        updateMissionRoot();
-        missionRoot = missionRoot + '/';
-        if (config.has("MissionRoot")) {
-            let path = missionRoot + config.get("MissionRoot");
-            if (path != "") {
-                missionRoot = path.split('\\').join('/');
-            }
-            else { //if no path specified assume mission root is where description is
-                let descriptionPathArray = description[0].fsPath.split('/');
-                descriptionPathArray.pop();
-                missionRoot = descriptionPathArray.join('/');
-            }
-            ;
+        let missionRoot = updateMissionRoot();
+        //working folder
+        let workingFolderPath = missionRoot + '/.vscode';
+        if (!fs.existsSync(workingFolderPath)) {
+            fs.mkdirSync(workingFolderPath);
         }
         ;
-        console.info(`Mission Root: ${missionRoot}`);
         vscode.workspace.openTextDocument(description[0]).then((document) => __awaiter(this, void 0, void 0, function* () {
             if (document.isDirty) {
                 vscode.window.showInformationMessage(`Arma3 CfgFunctions | File unsaved, aborting. | Path: ${descriptionPath}`);
@@ -238,6 +233,7 @@ function generateLibrary(cfgFunctionsJSON) {
             ;
         }
         ;
+        let missionRoot = updateMissionRoot();
         console.log("Generating function lib");
         let functionLib = {};
         //Default attributes
@@ -311,6 +307,7 @@ function PeekFile() {
     }
     ;
     //open file
+    let missionRoot = updateMissionRoot();
     let functionPath = (missionRoot + '/' + functionsLib[index]['file']).split('/').join('\\');
     let fncUri = vscode.Uri.file(functionPath);
     vscode.window.showTextDocument(fncUri);
