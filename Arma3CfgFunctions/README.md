@@ -29,8 +29,7 @@ Both paths are workspace relative
 
 ## Release Notes
 
-* Removed hover and peek case sensitivity
-* fixed setting change requiring reload to apply
+*
 
 ## Known issues
 

@@ -2,6 +2,10 @@
 
 All notable changes to the "Arma 3 Cfg Functions" extension will be documented in this file.
 
+## [1.1.4]
+
+* Fixed typo in tags
+
 ## [1.1.3]
 
 * Removed hover and peek case sensitivity
