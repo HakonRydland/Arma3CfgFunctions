@@ -5,6 +5,7 @@ All notable changes to the "Arma 3 Cfg Functions" extension will be documented i
 ## [1.1.3]
 
 * Removed hover and peek case sensitivity
+* fixed setting change requiring reload
 
 ## [1.1.2]
 

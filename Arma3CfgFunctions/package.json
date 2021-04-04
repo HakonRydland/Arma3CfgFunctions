@@ -48,22 +48,22 @@
             "Arma3CfgFunctions.DescriptionPath": {
                 "type": "string",
                 "default": "",
-                "description": "Path to the Description.ext"
+                "description": "Path to the Description.ext (Example: 'MissionRoot/Description.ext')"
             },
             "Arma3CfgFunctions.MissionRoot": {
                 "type": "string",
                 "default": "",
-                "description": "Path to the root of the mission"
+                "description": "Path to the root of the mission (Example: 'MissionRoot')"
             },
             "Arma3CfgFunctions.DisableAutoComplete": {
                 "type": "boolean",
                 "default": false,
-                "description": "Disable the auto completion feature. Rquires restart"
+                "description": "Disable the auto completion feature"
             },
             "Arma3CfgFunctions.DisableHeaderHover": {
                 "type": "boolean",
                 "default": false,
-                "description": "Disable the Header hover feature. Rquires restart"
+                "description": "Disable the Header hover feature"
             }
         }
         },
