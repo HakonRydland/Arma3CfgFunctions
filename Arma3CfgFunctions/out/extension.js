@@ -15,6 +15,7 @@ const fs = require("fs");
 const class_parser_1 = require("./class-parser");
 //base defines
 let functionsLib = {};
+let config = vscode.workspace.getConfiguration('Arma3CfgFunctions');
 let completionItems = [vscode.Disposable.prototype];
 completionItems.pop();
 //functions
@@ -26,7 +27,6 @@ function disposCompletionItems() {
 }
 ;
 function updateMissionRoot() {
-    let config = vscode.workspace.getConfiguration('Arma3CfgFunctions');
     let workspaceFolders = vscode.workspace.workspaceFolders;
     if (workspaceFolders === undefined) {
         return "";
@@ -47,7 +47,6 @@ if (!vscode.workspace.workspaceFolders === undefined) {
 ;
 function parseDescription(context) {
     return __awaiter(this, void 0, void 0, function* () {
-        let config = vscode.workspace.getConfiguration('Arma3CfgFunctions');
         //root description.ext path
         let descriptionPath = '**/*description.ext';
         if (config.has('DescriptionPath')) {
@@ -126,47 +125,8 @@ function parseDescription(context) {
             fs.unlinkSync(workingFolderPath + "/cfgfunctions");
             functionsLib = yield generateLibrary(parsedjson);
             console.log(functionsLib);
-            //remove old completion items and add new completion items
-            disposCompletionItems();
-            if (!config.get('DisableAutoComplete')) {
-                for (const key in functionsLib) {
-                    const element = functionsLib[key];
-                    let disposable = vscode.languages.registerCompletionItemProvider('sqf', {
-                        provideCompletionItems(document, Position, token, context) {
-                            return [
-                                new vscode.CompletionItem(element.Name)
-                            ];
-                        }
-                    });
-                    context.subscriptions.push(disposable);
-                    completionItems.push(disposable);
-                }
-                ;
-            }
-            ;
-            if (!config.get('DisableHeaderHover')) {
-                for (const key in functionsLib) {
-                    const element = functionsLib[key];
-                    if (!(element.Header == '')) {
-                        let disposable = vscode.languages.registerHoverProvider('sqf', {
-                            provideHover(document, position, token) {
-                                const range = document.getWordRangeAtPosition(position);
-                                const word = document.getText(range);
-                                if (word.toLowerCase() == element.Name.toLowerCase()) {
-                                    return new vscode.Hover({
-                                        language: "plaintext",
-                                        value: element.Header
-                                    });
-                                }
-                            }
-                        });
-                        context.subscriptions.push(disposable);
-                        completionItems.push(disposable);
-                    }
-                    ;
-                }
-                ;
-            }
+            //reload language additions (auto completion and header hovers)
+            reloadLanguageAdditions(context);
         }));
     });
 }
@@ -351,6 +311,49 @@ function getHeader(uri) {
     });
 }
 ;
+function reloadLanguageAdditions(context) {
+    disposCompletionItems();
+    if (!config.get('DisableAutoComplete')) {
+        for (const key in functionsLib) {
+            const element = functionsLib[key];
+            let disposable = vscode.languages.registerCompletionItemProvider('sqf', {
+                provideCompletionItems(document, Position, token, context) {
+                    return [
+                        new vscode.CompletionItem(element.Name)
+                    ];
+                }
+            });
+            context.subscriptions.push(disposable);
+            completionItems.push(disposable);
+        }
+        ;
+    }
+    ;
+    if (!config.get('DisableHeaderHover')) {
+        for (const key in functionsLib) {
+            const element = functionsLib[key];
+            if (!(element.Header == '')) {
+                let disposable = vscode.languages.registerHoverProvider('sqf', {
+                    provideHover(document, position, token) {
+                        const range = document.getWordRangeAtPosition(position);
+                        const word = document.getText(range);
+                        if (word.toLowerCase() == element.Name.toLowerCase()) {
+                            return new vscode.Hover({
+                                language: "plaintext",
+                                value: element.Header
+                            });
+                        }
+                    }
+                });
+                context.subscriptions.push(disposable);
+                completionItems.push(disposable);
+            }
+            ;
+        }
+        ;
+    }
+}
+;
 function activate(context) {
     context.subscriptions.push(vscode.commands.registerCommand('a3cfgfunctions.recompile', () => parseDescription(context)));
     context.subscriptions.push(vscode.commands.registerTextEditorCommand('a3cfgfunctions.peek', () => PeekFile()));
@@ -369,6 +372,7 @@ function activate(context) {
         vscode.commands.executeCommand("a3cfgfunctions.recompile");
     }));
     context.subscriptions.push(vscode.workspace.onDidChangeConfiguration(() => {
+        config = vscode.workspace.getConfiguration('Arma3CfgFunctions');
         vscode.commands.executeCommand("a3cfgfunctions.recompile");
     }));
 }
