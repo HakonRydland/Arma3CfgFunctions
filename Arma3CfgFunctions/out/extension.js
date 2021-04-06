@@ -41,7 +41,7 @@ function updateMissionRoot() {
     return missionRoot;
 }
 ;
-if (!vscode.workspace.workspaceFolders === undefined) {
+if (vscode.workspace.workspaceFolders !== undefined) {
     updateMissionRoot();
 }
 ;
@@ -357,21 +357,41 @@ function reloadLanguageAdditions(context) {
 function activate(context) {
     context.subscriptions.push(vscode.commands.registerCommand('a3cfgfunctions.recompile', () => parseDescription(context)));
     context.subscriptions.push(vscode.commands.registerTextEditorCommand('a3cfgfunctions.peek', () => PeekFile()));
-    if (vscode.workspace.workspaceFolders === undefined) {
+    if (vscode.workspace.workspaceFolders !== undefined) {
         parseDescription(context);
     }
     ;
     //events
     context.subscriptions.push(vscode.workspace.onDidSaveTextDocument((Document) => {
-        if (Document.languageId == "sqf" || Document.languageId == "ext") {
+        //for Arma header files recompile to catch new or removed functions
+        if (Document.languageId == "ext") {
             vscode.commands.executeCommand("a3cfgfunctions.recompile");
+            return;
+        }
+        ;
+        //for sqf files only update header of changed file
+        if (Document.languageId == "sqf") {
+            let nameArray = Document.fileName.split('\\');
+            let name = nameArray[nameArray.length - 1];
+            name = name.substr(3, name.length - 7); //remove fn_ prefix and .sqf file extension
+            (Object.keys(functionsLib)).forEach((Key) => __awaiter(this, void 0, void 0, function* () {
+                if (Key.endsWith(name)) {
+                    let element = functionsLib[Key];
+                    let header = yield getHeader(element.Uri);
+                    element.Header = header;
+                    return;
+                }
+                ;
+            }));
         }
         ;
     }));
+    //unlikely to catch anything...
     context.subscriptions.push(vscode.workspace.onDidChangeWorkspaceFolders(() => {
         vscode.commands.executeCommand("a3cfgfunctions.recompile");
     }));
     context.subscriptions.push(vscode.workspace.onDidChangeConfiguration(() => {
+        //update config and recompile with new settings
         config = vscode.workspace.getConfiguration('Arma3CfgFunctions');
         vscode.commands.executeCommand("a3cfgfunctions.recompile");
     }));

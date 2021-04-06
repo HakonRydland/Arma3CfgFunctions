@@ -5,6 +5,8 @@ All notable changes to the "Arma 3 Cfg Functions" extension will be documented i
 ## [1.1.4]
 
 * Fixed typo in tags
+* Fixed bug blocking compilation on extension activation
+* Reduced saving performance impact by only updating header of changed sqf files
 
 ## [1.1.3]
 

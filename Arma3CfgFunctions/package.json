@@ -22,7 +22,8 @@
         "intellisense"
     ],
     "activationEvents": [
-        "*",
+        "onStartupFinished",
+        "onLanguage:sqf",
         "onCommand:a3cfgfunctions.recompile",
         "onCommand:a3cfgfunctions.peek"
     ],
