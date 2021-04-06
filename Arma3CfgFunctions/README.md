@@ -29,7 +29,9 @@ Both paths are workspace relative
 
 ## Release Notes
 
-*
+* Fixed typo in tags
+* Fixed bug blocking compilation on extension activation
+* Reduced saving performance impact by only updating header of changed sqf files
 
 ## Known issues
 
