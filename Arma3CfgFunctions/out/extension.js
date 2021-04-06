@@ -16,8 +16,7 @@ const class_parser_1 = require("./class-parser");
 //base defines
 let functionsLib = {};
 let config = vscode.workspace.getConfiguration('Arma3CfgFunctions');
-let completionItems = [vscode.Disposable.prototype];
-completionItems.pop();
+let completionItems = [];
 //functions
 function disposCompletionItems() {
     completionItems.forEach(element => {

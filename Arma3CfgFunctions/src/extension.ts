@@ -6,8 +6,7 @@ import {parse} from './class-parser';
 
 let functionsLib = {}
 let config = vscode.workspace.getConfiguration('Arma3CfgFunctions');
-let completionItems = [vscode.Disposable.prototype];
-completionItems.pop();
+let completionItems: vscode.Disposable[] = [];
 
 //functions
 function disposCompletionItems() {
