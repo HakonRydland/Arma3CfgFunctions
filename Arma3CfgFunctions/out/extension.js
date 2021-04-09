@@ -460,6 +460,12 @@ function parseResponce(responce, classID) {
                     ;
                 }
                 ;
+                if (element.children) {
+                    element.children.forEach(element => {
+                        extractDataFromTag(element);
+                    });
+                }
+                ;
             });
         }
         ;
@@ -651,10 +657,6 @@ function activate(context) {
     context.subscriptions.push(vscode.commands.registerCommand('a3cfgfunctions.recompile', () => parseDescription(context)));
     context.subscriptions.push(vscode.commands.registerCommand('a3cfgfunctions.generateCommands', () => generateCommands()));
     context.subscriptions.push(vscode.commands.registerCommand('a3cfgfunctions.generateFunctions', () => generateFunctions()));
-    if (vscode.workspace.workspaceFolders !== undefined) {
-        parseDescription(context);
-    }
-    ;
     //events
     context.subscriptions.push(vscode.workspace.onDidSaveTextDocument((Document) => { onSave(Document); }));
     //unlikely to catch anything...
@@ -753,6 +755,11 @@ function activate(context) {
             ;
         }
         ;
+    }
+    ;
+    //finally auto compile if apropriate
+    if (vscode.workspace.workspaceFolders !== undefined) {
+        parseDescription(context);
     }
     ;
 }

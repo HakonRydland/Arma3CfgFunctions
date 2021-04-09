@@ -347,6 +347,11 @@ function parseResponce(responce, classID) {
                         case 'tt': { parseTypeTT(element); break };
                     };
                 };
+                if (element.children) {
+                    element.children.forEach(element => {
+                        extractDataFromTag(element);
+                    });
+                };
             });
         };
     };
@@ -487,7 +492,6 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(vscode.commands.registerCommand('a3cfgfunctions.recompile', () => parseDescription(context)));
     context.subscriptions.push(vscode.commands.registerCommand('a3cfgfunctions.generateCommands', () => generateCommands()));
     context.subscriptions.push(vscode.commands.registerCommand('a3cfgfunctions.generateFunctions', () => generateFunctions()));
-    if (vscode.workspace.workspaceFolders !== undefined) { parseDescription(context) };
 
     //events
     context.subscriptions.push(vscode.workspace.onDidSaveTextDocument((Document) => { onSave(Document) }))
@@ -592,6 +596,9 @@ export function activate(context: vscode.ExtensionContext) {
             };
         };
     };
+
+    //finally auto compile if apropriate
+    if (vscode.workspace.workspaceFolders !== undefined) { parseDescription(context) };
 }
 
 export function deactivate() {
