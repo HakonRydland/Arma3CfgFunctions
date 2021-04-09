@@ -2,6 +2,12 @@
 
 All notable changes to the "Arma 3 Cfg Functions" extension will be documented in this file.
 
+## [1.1.5]
+
+* moved function peeking to built in 'go to definition' and it's subfunction 'Peek definition'
+* Added wiki definition peeking for arma engine commands (opens browser)
+* added wiki hovers for engine commands (disabled by default, performance heavy)
+
 ## [1.1.4]
 
 * Fixed typo in tags
