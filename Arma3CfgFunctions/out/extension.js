@@ -460,12 +460,6 @@ function parseResponce(responce, classID) {
                     ;
                 }
                 ;
-                if (element.children) {
-                    element.children.forEach(element => {
-                        extractDataFromTag(element);
-                    });
-                }
-                ;
             });
         }
         ;

@@ -347,11 +347,6 @@ function parseResponce(responce, classID) {
                         case 'tt': { parseTypeTT(element); break };
                     };
                 };
-                if (element.children) {
-                    element.children.forEach(element => {
-                        extractDataFromTag(element);
-                    });
-                };
             });
         };
     };
