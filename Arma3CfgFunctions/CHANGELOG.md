@@ -2,6 +2,10 @@
 
 All notable changes to the "Arma 3 Cfg Functions" extension will be documented in this file.
 
+## [1.1.6] *Hotfix
+
+* Moved wiki lookup to a menu item 'Go to wiki entry'
+
 ## [1.1.5]
 
 * moved function peeking to built in 'go to definition' and it's subfunction 'Peek definition'

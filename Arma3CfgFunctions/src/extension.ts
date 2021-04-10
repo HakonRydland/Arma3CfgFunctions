@@ -5,6 +5,8 @@ import axios from "axios";
 import { load } from "cheerio";
 import commandsJson from "./Data/commands.json";
 import functionsJson from "./Data/functions.json";
+const commandsJsonKeys = Object.keys(commandsJson);
+const functionsJsonKeys = Object.keys(functionsJson);
 
 //base defines
 let functionsLib = {}
@@ -483,10 +485,49 @@ async function generateFunctions() {
 
 };
 
+function goToWiki() {
+    let editor = vscode.window.activeTextEditor;
+    let document = editor.document;
+    let position = editor.selection.active;
+    let word = document.getText(document.getWordRangeAtPosition(position));
+    console.debug(`Attempting to go to wiki entry for ${word}`);
+
+    //case sensetive checks (quick)
+    //engine commands
+    if (commandsJson[word]) {
+        vscode.env.openExternal(commandsJson[word].Url);
+        return
+    };
+    //BIS functions
+    if (functionsJson[word]) {
+        vscode.env.openExternal(functionsJson[word].Url);
+        return
+    };
+
+    if (config.get('caseInsensetive')) {
+        //engine commands
+        let key = commandsJsonKeys.find((key) => { return key.toLowerCase() == word.toLowerCase() });
+        if (commandsJson[key]) {
+            vscode.env.openExternal(commandsJson[key].Url);
+            return
+        };
+
+        //BIS functions
+        key = functionsJsonKeys.find((key) => { return key.toLowerCase() == word.toLowerCase() });
+        if (functionsJson[key]) {
+            vscode.env.openExternal(functionsJson[key].Url);
+            return
+        };
+    }
+
+    vscode.window.showInformationMessage(`Can't find wiki entry for ${word}`);
+};
+
 export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(vscode.commands.registerCommand('a3cfgfunctions.recompile', () => parseDescription(context)));
     context.subscriptions.push(vscode.commands.registerCommand('a3cfgfunctions.generateCommands', () => generateCommands()));
     context.subscriptions.push(vscode.commands.registerCommand('a3cfgfunctions.generateFunctions', () => generateFunctions()));
+    context.subscriptions.push(vscode.commands.registerTextEditorCommand('a3cfgfunctions.goToWiki', () => goToWiki()));
 
     //events
     context.subscriptions.push(vscode.workspace.onDidSaveTextDocument((Document) => { onSave(Document) }))
@@ -503,46 +544,16 @@ export function activate(context: vscode.ExtensionContext) {
         vscode.commands.executeCommand("a3cfgfunctions.recompile");
     }))
 
-    //commands wiki definitions
-    const commandsJsonKeys = Object.keys(commandsJson);
-    const functionsJsonKeys = Object.keys(functionsJson);
+    //custom function definitions
     context.subscriptions.push(vscode.languages.registerDefinitionProvider({ language: 'sqf' }, {
         provideDefinition(document, position) {
             let word = document.getText(document.getWordRangeAtPosition(position));
-
-            //case sensetive checks (quick)
-            //engine commands
-            if (commandsJson[word]) {
-                vscode.env.openExternal(commandsJson[word].Url);
-                return undefined
-            };
-            //BIS functions
-            if (functionsJson[word]) {
-                vscode.env.openExternal(functionsJson[word].Url);
-                return undefined
-            };
 
             //custom function
             let key = Object.keys(functionsLib).find((Key) => { return Key.toLowerCase() == word.toLowerCase() });
             if (functionsLib[key]) {
                 return new vscode.Location(functionsLib[key].Uri, new vscode.Position(0, 0));
             };
-
-            if (config.get('caseInsensetive')) {
-                //engine commands
-                key = commandsJsonKeys.find((key) => { return key.toLowerCase() == word.toLowerCase() });
-                if (commandsJson[key]) {
-                    vscode.env.openExternal(commandsJson[key].Url);
-                    return undefined
-                };
-
-                //BIS functions
-                key = functionsJsonKeys.find((key) => { return key.toLowerCase() == word.toLowerCase() });
-                if (functionsJson[key]) {
-                    vscode.env.openExternal(functionsJson[key].Url);
-                    return undefined
-                };
-            }
 
             return undefined
         }

@@ -7,7 +7,7 @@
         "type": "git",
         "url": "https://github.com/HakonRydland/Arma3CfgFunctions"
     },
-    "version": "1.1.5",
+    "version": "1.1.6",
     "icon": "img/icon.png",
     "engines": {
         "vscode": "^1.54.0"
@@ -47,6 +47,12 @@
                 "category": "Arma 3",
                 "title": "Generate functions JSON",
                 "enablement": "false"
+            },
+            {
+                "command": "a3cfgfunctions.goToWiki",
+                "category": "Arma 3",
+                "title": "Go to wiki entry",
+                "enablement": "resourceLangId == sqf"
             }
         ],
         "configuration": {
@@ -88,6 +94,15 @@
                     "description": "allow definition search with case insensetivity for engine commands and BIS functions"
                 }
             }
+        },
+        "menus": {
+            "editor/context": [
+                {
+                    "when": "true",
+                    "command": "a3cfgfunctions.goToWiki",
+                    "group": "navigation"
+                }
+            ]
         }
     },
     "scripts": {

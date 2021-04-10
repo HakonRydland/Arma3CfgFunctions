@@ -23,6 +23,7 @@ Allows BIS wiki search trough definitions for engine commands and BIS functions,
 
 This extension contributes the following settings:
 
+
 | Config entry | Description |
 | - | - |
 | Arma3CfgFunctions.DescriptionPath | set the description.ext path used |
@@ -38,7 +39,8 @@ Both `Description Path` and `Mission Root` paths are workspace relative
 ## Release Notes
 
 * moved and improved mission function definition peeking, now usable by the 'Go to Definition/Peek Definition' buttons in the context menu.
-* added wiki lookups trough same button, can search case insensetiv if enabled in settings.
+* ~~added wiki lookups trough same button, can search case insensetiv if enabled in settings.~~
+  * Hotfix: moved to own menu button 'Go to wiki entry' due to problems with `ctrl` while over a recognised command/function opening wiki entry
 * added wiki hovers, disabled by default as they will increase hover load time significantly.
 
 ## Known issues

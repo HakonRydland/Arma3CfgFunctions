@@ -39,6 +39,8 @@ const axios_1 = __importDefault(require("axios"));
 const cheerio_1 = require("cheerio");
 const commands_json_1 = __importDefault(require("./Data/commands.json"));
 const functions_json_1 = __importDefault(require("./Data/functions.json"));
+const commandsJsonKeys = Object.keys(commands_json_1.default);
+const functionsJsonKeys = Object.keys(functions_json_1.default);
 //base defines
 let functionsLib = {};
 let config = vscode.workspace.getConfiguration('Arma3CfgFunctions');
@@ -647,10 +649,49 @@ function generateFunctions() {
     });
 }
 ;
+function goToWiki() {
+    let editor = vscode.window.activeTextEditor;
+    let document = editor.document;
+    let position = editor.selection.active;
+    let word = document.getText(document.getWordRangeAtPosition(position));
+    console.debug(`Attempting to go to wiki entry for ${word}`);
+    //case sensetive checks (quick)
+    //engine commands
+    if (commands_json_1.default[word]) {
+        vscode.env.openExternal(commands_json_1.default[word].Url);
+        return;
+    }
+    ;
+    //BIS functions
+    if (functions_json_1.default[word]) {
+        vscode.env.openExternal(functions_json_1.default[word].Url);
+        return;
+    }
+    ;
+    if (config.get('caseInsensetive')) {
+        //engine commands
+        let key = commandsJsonKeys.find((key) => { return key.toLowerCase() == word.toLowerCase(); });
+        if (commands_json_1.default[key]) {
+            vscode.env.openExternal(commands_json_1.default[key].Url);
+            return;
+        }
+        ;
+        //BIS functions
+        key = functionsJsonKeys.find((key) => { return key.toLowerCase() == word.toLowerCase(); });
+        if (functions_json_1.default[key]) {
+            vscode.env.openExternal(functions_json_1.default[key].Url);
+            return;
+        }
+        ;
+    }
+    vscode.window.showInformationMessage(`Can't find wiki entry for ${word}`);
+}
+;
 function activate(context) {
     context.subscriptions.push(vscode.commands.registerCommand('a3cfgfunctions.recompile', () => parseDescription(context)));
     context.subscriptions.push(vscode.commands.registerCommand('a3cfgfunctions.generateCommands', () => generateCommands()));
     context.subscriptions.push(vscode.commands.registerCommand('a3cfgfunctions.generateFunctions', () => generateFunctions()));
+    context.subscriptions.push(vscode.commands.registerTextEditorCommand('a3cfgfunctions.goToWiki', () => goToWiki()));
     //events
     context.subscriptions.push(vscode.workspace.onDidSaveTextDocument((Document) => { onSave(Document); }));
     //unlikely to catch anything...
@@ -663,47 +704,16 @@ function activate(context) {
         updateFolderPaths();
         vscode.commands.executeCommand("a3cfgfunctions.recompile");
     }));
-    //commands wiki definitions
-    const commandsJsonKeys = Object.keys(commands_json_1.default);
-    const functionsJsonKeys = Object.keys(functions_json_1.default);
+    //custom function definitions
     context.subscriptions.push(vscode.languages.registerDefinitionProvider({ language: 'sqf' }, {
         provideDefinition(document, position) {
             let word = document.getText(document.getWordRangeAtPosition(position));
-            //case sensetive checks (quick)
-            //engine commands
-            if (commands_json_1.default[word]) {
-                vscode.env.openExternal(commands_json_1.default[word].Url);
-                return undefined;
-            }
-            ;
-            //BIS functions
-            if (functions_json_1.default[word]) {
-                vscode.env.openExternal(functions_json_1.default[word].Url);
-                return undefined;
-            }
-            ;
             //custom function
             let key = Object.keys(functionsLib).find((Key) => { return Key.toLowerCase() == word.toLowerCase(); });
             if (functionsLib[key]) {
                 return new vscode.Location(functionsLib[key].Uri, new vscode.Position(0, 0));
             }
             ;
-            if (config.get('caseInsensetive')) {
-                //engine commands
-                key = commandsJsonKeys.find((key) => { return key.toLowerCase() == word.toLowerCase(); });
-                if (commands_json_1.default[key]) {
-                    vscode.env.openExternal(commands_json_1.default[key].Url);
-                    return undefined;
-                }
-                ;
-                //BIS functions
-                key = functionsJsonKeys.find((key) => { return key.toLowerCase() == word.toLowerCase(); });
-                if (functions_json_1.default[key]) {
-                    vscode.env.openExternal(functions_json_1.default[key].Url);
-                    return undefined;
-                }
-                ;
-            }
             return undefined;
         }
     }));
