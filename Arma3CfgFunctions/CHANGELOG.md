@@ -2,6 +2,17 @@
 
 All notable changes to the "Arma 3 Cfg Functions" extension will be documented in this file.
 
+## [1.1.7]
+
+* Fixed bug bracking description parsing when brackets where not on same indentation on line
+* Fixed bug not allowing oppening/closing class attributes on same line as it was defined example:
+
+```c++
+class CfgFunctions {
+...
+};
+```
+
 ## [1.1.6] *Hotfix
 
 * Moved wiki lookup to a menu item 'Go to wiki entry'
@@ -26,8 +37,8 @@ All notable changes to the "Arma 3 Cfg Functions" extension will be documented i
 ## [1.1.2]
 
 * Added auto compile on startup
-* added setting: `Disable Auto complete` Requires restart between setting change
-* added setting: `Disable Header Hover` Requires restart between setting change
+* added setting:`Disable Auto complete` Requires restart between setting change
+* added setting:`Disable Header Hover` Requires restart between setting change
 * now recompiles on sqf and ext file saves (language ID), worspace folder change and config change
 * updated extension display name and description to reflect new functionality
 
@@ -38,7 +49,7 @@ All notable changes to the "Arma 3 Cfg Functions" extension will be documented i
 ## [1.1.0]
 
 * Added file peeking in the editor context menu
-* added header hovers (first 12 lines, header must be in block ```/*Header content*/```)
+* added header hovers (first 12 lines, header must be in block``/*Header content*/``)
 
 ## [1.0.0]
 
