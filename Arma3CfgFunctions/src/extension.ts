@@ -74,10 +74,17 @@ async function parseDescription(context: vscode.ExtensionContext) {
         //write to temp file
         for (let index = 0; index < document.lineCount; index++) {
             const element = document.lineAt(index);
-            if (inCfgFunctions && brackets == 0) {continue};
-            if (!cfgFunctionsFound) { cfgFunctionsFound = (element.text.toLowerCase().search("class cfgfunctions") > -1)} else {
+            if (inCfgFunctions && brackets == 0) { continue };
 
-                brackets -= element.text.search('}') + 1;
+            if (!cfgFunctionsFound) {
+                cfgFunctionsFound = (element.text.toLowerCase().includes("class cfgfunctions"));
+                if (cfgFunctionsFound) {
+                    if (element.text.includes('{')) { brackets += 1 };
+                    if (element.text.includes('}')) { brackets -= 1 };
+                };
+            } else {
+
+                if (element.text.includes('}')) { brackets -= 1 };
                 if (cfgFunctionsFound && brackets > 0) {
                     inCfgFunctions = true;
                     if (element.text.startsWith('//')) {continue};
@@ -88,8 +95,8 @@ async function parseDescription(context: vscode.ExtensionContext) {
                     } else {
                         fs.writeFileSync(fd, ('\n' + element.text));
                     };
+                    if (element.text.includes('{')) { brackets += 1 };
                 };
-                brackets += element.text.search('{') + 1;
             };
         };
         fs.closeSync(fd);
@@ -181,6 +188,7 @@ async function generateLibrary(cfgFunctionsJSON:JSON) {
         //Namespace traits
         NamespaceAtributes.Tag = Tag;
         setPropertyIfExists(Namespace, 'file', NamespaceAtributes);
+        console.debug(`Tag: ${Tag}`);
 
         for (const FolderName in Namespace) {
             const Folder = Namespace[FolderName];
@@ -191,11 +199,15 @@ async function generateLibrary(cfgFunctionsJSON:JSON) {
             setPropertyIfExists(Folder,'file',FolderAtributes);
             setPropertyIfExists(Folder, 'Tag', FolderAtributes);
 
+            console.debug(`Folder: ${FolderName}`);
+
             //Functions
             for (const functionName in Folder) {
                 if (atributeKeys.includes(functionName)) {continue};
                 const func = Folder[functionName];
                 let functionAtributes = Object.assign( {}, FolderAtributes);
+
+                console.debug(`Function: ${functionName}`);
 
                 //Function traits
                 setPropertyIfExists(func, 'ext', functionAtributes);

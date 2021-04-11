@@ -122,10 +122,24 @@ function parseDescription(context) {
                 }
                 ;
                 if (!cfgFunctionsFound) {
-                    cfgFunctionsFound = (element.text.toLowerCase().search("class cfgfunctions") > -1);
+                    cfgFunctionsFound = (element.text.toLowerCase().includes("class cfgfunctions"));
+                    if (cfgFunctionsFound) {
+                        if (element.text.includes('{')) {
+                            brackets += 1;
+                        }
+                        ;
+                        if (element.text.includes('}')) {
+                            brackets -= 1;
+                        }
+                        ;
+                    }
+                    ;
                 }
                 else {
-                    brackets -= element.text.search('}') + 1;
+                    if (element.text.includes('}')) {
+                        brackets -= 1;
+                    }
+                    ;
                     if (cfgFunctionsFound && brackets > 0) {
                         inCfgFunctions = true;
                         if (element.text.startsWith('//')) {
@@ -141,9 +155,12 @@ function parseDescription(context) {
                             fs.writeFileSync(fd, ('\n' + element.text));
                         }
                         ;
+                        if (element.text.includes('{')) {
+                            brackets += 1;
+                        }
+                        ;
                     }
                     ;
-                    brackets += element.text.search('{') + 1;
                 }
                 ;
             }
@@ -240,6 +257,7 @@ function generateLibrary(cfgFunctionsJSON) {
             //Namespace traits
             NamespaceAtributes.Tag = Tag;
             setPropertyIfExists(Namespace, 'file', NamespaceAtributes);
+            console.debug(`Tag: ${Tag}`);
             for (const FolderName in Namespace) {
                 const Folder = Namespace[FolderName];
                 let FolderAtributes = Object.assign({}, NamespaceAtributes);
@@ -247,6 +265,7 @@ function generateLibrary(cfgFunctionsJSON) {
                 //Folder traits
                 setPropertyIfExists(Folder, 'file', FolderAtributes);
                 setPropertyIfExists(Folder, 'Tag', FolderAtributes);
+                console.debug(`Folder: ${FolderName}`);
                 //Functions
                 for (const functionName in Folder) {
                     if (atributeKeys.includes(functionName)) {
@@ -255,6 +274,7 @@ function generateLibrary(cfgFunctionsJSON) {
                     ;
                     const func = Folder[functionName];
                     let functionAtributes = Object.assign({}, FolderAtributes);
+                    console.debug(`Function: ${functionName}`);
                     //Function traits
                     setPropertyIfExists(func, 'ext', functionAtributes);
                     setPropertyIfExists(func, 'Tag', functionAtributes);
