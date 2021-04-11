@@ -7,7 +7,7 @@
         "type": "git",
         "url": "https://github.com/HakonRydland/Arma3CfgFunctions"
     },
-    "version": "1.1.7",
+    "version": "1.1.8",
     "icon": "img/icon.png",
     "engines": {
         "vscode": "^1.54.0"

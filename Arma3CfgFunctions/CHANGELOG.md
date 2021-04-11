@@ -2,6 +2,10 @@
 
 All notable changes to the "Arma 3 Cfg Functions" extension will be documented in this file.
 
+## [1.1.8] *hotfix
+
+* fixed line in wrong scope breaking bracket count
+
 ## [1.1.7]
 
 * Fixed bug bracking description parsing when brackets where not on same indentation on line
