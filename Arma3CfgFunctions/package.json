@@ -37,18 +37,6 @@
                 "enablement": "workbenchState != empty"
             },
             {
-                "command": "a3cfgfunctions.generateCommands",
-                "category": "Arma 3",
-                "title": "Generate commands JSON",
-                "enablement": "false"
-            },
-            {
-                "command": "a3cfgfunctions.generateFunctions",
-                "category": "Arma 3",
-                "title": "Generate functions JSON",
-                "enablement": "false"
-            },
-            {
                 "command": "a3cfgfunctions.goToWiki",
                 "category": "Arma 3",
                 "title": "Go to wiki entry",
@@ -92,6 +80,11 @@
                     "type": "boolean",
                     "default": false,
                     "description": "allow definition search with case insensetivity for engine commands and BIS functions"
+                },
+                "Arma3CfgFunctions.Tagless": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Use only the function name for autocompletion, header hover, and function peek"
                 }
             }
         },

@@ -156,6 +156,15 @@ async function parseFile(fd:number, filePath:string) {
     });
 };
 
+interface functionEntry {
+    'Name': ""
+    , 'Tag': ""
+    , 'file': "functions"
+    , 'ext': ".sqf"
+    , 'Uri': vscode.Uri
+    , 'Header': ""
+};
+
 async function generateLibrary(cfgFunctionsJSON:JSON) {
 
     function setPropertyIfExists (object: Object, key: string, Atributes: Object ) {
@@ -178,6 +187,7 @@ async function generateLibrary(cfgFunctionsJSON:JSON) {
     };
 
     let atributeKeys = ['tag', 'file', 'ext']
+    let Tagless = config.get('Tagless')
 
     for (const Tag in cfgFunctionsJSON) {
         let NamespaceAtributes = Object.assign({}, MasterAtributes);
@@ -216,7 +226,8 @@ async function generateLibrary(cfgFunctionsJSON:JSON) {
                 Object.assign(functionAtributes, { Header: Header})
 
                 //Registre function in library
-                let entrySring = '{"'+functionAtributes.Name+'":'+JSON.stringify(functionAtributes)+'}';
+                let name = Tagless ? functionName : functionAtributes.Name
+                let entrySring = '{"' + name + '":' + JSON.stringify(functionAtributes) + '}';
                 let entry = JSON.parse(entrySring);
                 Object.assign(functionLib, entry);
             }
@@ -250,11 +261,10 @@ function reloadLanguageAdditions(context: vscode.ExtensionContext) {
     disposCompletionItems();
     if (!config.get('DisableAutoComplete')) {
         for (const key in functionsLib) {
-            const element = functionsLib[key];
             let disposable = vscode.languages.registerCompletionItemProvider('sqf', {
                 provideCompletionItems(document: vscode.TextDocument, Position: vscode.Position, token: vscode.CancellationToken, context: vscode.CompletionContext) {
                     return [
-                        new vscode.CompletionItem(element.Name)
+                        new vscode.CompletionItem(key, 2)
                     ]
                 }
             })
@@ -272,7 +282,7 @@ function reloadLanguageAdditions(context: vscode.ExtensionContext) {
 
                         const range = document.getWordRangeAtPosition(position);
                         const word = document.getText(range);
-                        if (word.toLowerCase() == element.Name.toLowerCase()) {
+                        if (word.toLowerCase() == key.toLowerCase()) {
 
                             return new vscode.Hover({
                                 language: "plaintext",
