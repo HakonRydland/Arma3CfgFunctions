@@ -177,7 +177,7 @@ async function generateLibrary(cfgFunctionsJSON:JSON) {
         , 'Header': ""
     };
 
-    let atributeKeys = ['Tag','file','ext']
+    let atributeKeys = ['tag', 'file', 'ext']
 
     for (const Tag in cfgFunctionsJSON) {
         let NamespaceAtributes = Object.assign({}, MasterAtributes);
@@ -188,6 +188,7 @@ async function generateLibrary(cfgFunctionsJSON:JSON) {
         setPropertyIfExists(Namespace, 'file', NamespaceAtributes);
 
         for (const FolderName in Namespace) {
+            if (atributeKeys.includes(FolderName.toLowerCase())) { continue };
             const Folder = Namespace[FolderName];
             let FolderAtributes = Object.assign({}, NamespaceAtributes);
             FolderAtributes.file = `${NamespaceAtributes.file}\\${FolderName}`;
@@ -198,7 +199,7 @@ async function generateLibrary(cfgFunctionsJSON:JSON) {
 
             //Functions
             for (const functionName in Folder) {
-                if (atributeKeys.includes(functionName)) {continue};
+                if (atributeKeys.includes(functionName.toLowerCase())) { continue };
                 const func = Folder[functionName];
                 let functionAtributes = Object.assign( {}, FolderAtributes);
 
