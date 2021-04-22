@@ -2,6 +2,18 @@
 
 All notable changes to the "Arma 3 Cfg Functions" extension will be documented in this file.
 
+## [1.1.9]
+
+* Fixed compiler failure with tag change in namespace layer
+
+  ```sqf
+  class myTag {
+      tag = newTag;
+      ...
+  };
+  ```
+* added support for 'tagless' behaviour, making the function `myTag_fnc_someFunc` be treated as `someFunc`
+
 ## [1.1.8] *hotfix
 
 * fixed line in wrong scope breaking bracket count

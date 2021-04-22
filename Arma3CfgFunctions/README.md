@@ -32,26 +32,34 @@ This extension contributes the following settings:
 | Arma3CfgFunctions.EnableCommandHover | enables engine command wiki hover (performance heavy, disabled by default) |
 | Arma3CfgFunctions.EnableFunctionsHover | enables BIS functions wiki hover (performance heavy, disabled by default) |
 | Arma3CfgFunctions.caseInsensetive | enables case insensetiv wiki lookups for engine commands and BIS functions |
+| Arma3CfgFunctions.Tagless| enables tagless behavior, warning may cause issues with functions with same name but different tags |
 
 Both `Description Path` and `Mission Root` paths are workspace relative
 
 ## Release Notes
 
-* Fixed bug bracking description parsing when brackets where not on same indentation on line
-* Fixed bug not allowing oppening/closing class attributes on same line as it was defined
+* Fixed compiler failure with tag change in namespace layer
+
+  ```sqf
+  class myTag {
+      tag = newTag;
+      ...
+  };
+  ```
+* added support for 'Tagless' behaviour, making the function `myTag_fnc_someFunc` be treated as `someFunc`
+  ***! warning: Tagless can lead to issues with functions with same name but different tags !***
 
 ## Known issues
 
-This extension only works with the first of your workspace folders
+This extension only works with the first of your workspace folders.
+Tagless can lead to issues with functions with same name but different tags.
 
 ---
 
-###### Found something wrong?
+###### Found something wrong? Report it [here](https://github.com/HakonRydland/Arma3CfgFunctions/issues)
 
-* Report it [here](https://github.com/HakonRydland/Arma3CfgFunctions/issues)
+###### Want to donate? I appreciate it! Right trough [here](https://ko-fi.com/hakonrydland)
 
-###### Want to donate?
 
-* I appreciate it! Right trough [here](https://ko-fi.com/hakonrydland)
 
 **Enjoy!**
