@@ -32,15 +32,17 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.deactivate = exports.activate = void 0;
+//basics
 const vscode = __importStar(require("vscode"));
 const fs = __importStar(require("fs"));
+//Arma class parser
 const class_parser_1 = require("./class-parser");
+//Engine cmd's and BIS function database
+const cmd_json_1 = __importDefault(require("./Data/cmd.json"));
+const fnc_json_1 = __importDefault(require("./Data/fnc.json"));
+//webview
 const axios_1 = __importDefault(require("axios"));
-const cheerio_1 = require("cheerio");
-const commands_json_1 = __importDefault(require("./Data/commands.json"));
-const functions_json_1 = __importDefault(require("./Data/functions.json"));
-const commandsJsonKeys = Object.keys(commands_json_1.default);
-const functionsJsonKeys = Object.keys(functions_json_1.default);
+const axiosInstance = axios_1.default.create();
 //base defines
 let functionsLib = {};
 let config = vscode.workspace.getConfiguration('Arma3CfgFunctions');
@@ -244,12 +246,12 @@ function generateLibrary(cfgFunctionsJSON) {
         let functionLib = {};
         //Default attributes
         let MasterAtributes = {
-            'Name': "",
-            'Tag': "",
-            'file': "functions",
-            'ext': ".sqf",
+            'Name': '',
+            'Tag': '',
+            'file': 'functions',
+            'ext': '.sqf',
             'Uri': vscode.Uri.prototype,
-            'Header': ""
+            'Header': ''
         };
         let atributeKeys = ['tag', 'file', 'ext'];
         let Tagless = config.get('Tagless');
@@ -406,314 +408,50 @@ function onSave(Document) {
     ;
 }
 ;
-function parseResponce(responce, classID) {
-    let $ = cheerio_1.load(responce.data);
-    //icon class
-    let icons = $('div.locality-icons');
-    let locIcons;
-    if (icons.length > 0) {
-        locIcons = icons[0]['children'];
-    }
-    ;
-    //header contents
-    let elements = $(classID)[0]['children'].filter(element => { return element.type == 'tag' && element.name == 'dl'; });
-    //parse text
-    let commandText = '';
-    function addToCommandText(text) { commandText += text; }
-    ;
-    function parseTypeDT(element) {
-        if (element.children) {
-            element.children.forEach(element => {
-                if (element.data) {
-                    addToCommandText(element.data);
-                }
-                ;
-            });
-        }
-    }
-    ;
-    function extractDataFromTag(element) {
-        if (element.children) {
-            element.children.forEach(element => {
-                if (element.data) {
-                    addToCommandText(element.data);
-                }
-                else {
-                    extractDataFromTag(element);
-                }
-                ;
-            });
-        }
-        ;
-    }
-    ;
-    function parseTypeDD(element) {
-        if (element.children) {
-            element.children.forEach(element => {
-                if (element.data) {
-                    addToCommandText(element.data);
-                }
-                else {
-                    switch (element.name) {
-                        case 'code':
-                            {
-                                addToCommandText('\n```sqf\n');
-                                extractDataFromTag(element);
-                                addToCommandText('\n```\n');
-                                break;
-                            }
-                            ;
-                        case 'a':
-                            {
-                                parseTypeA(element);
-                                break;
-                            }
-                            ;
-                        case 'b':
-                            {
-                                parseTypeB(element);
-                                break;
-                            }
-                            ;
-                        case 'tt':
-                            {
-                                parseTypeTT(element);
-                                break;
-                            }
-                            ;
-                    }
-                    ;
-                }
-                ;
-            });
-        }
-        ;
-    }
-    ;
-    function parseTypeTT(element) {
-        if (element.data) {
-            addToCommandText(element.data);
-        }
-        else {
-            if (element.children) {
-                element.children.forEach(element => { parseTypeTT(element); });
-            }
-            ;
-        }
-        ;
-    }
-    ;
-    function parseTypeB(element) {
-        element.children.forEach(element => {
-            if (element.data) {
-                addToCommandText(element.data);
-            }
-            else {
-                switch (element.type) {
-                    case 'tag':
-                        {
-                            extractDataFromTag(element);
-                            break;
-                        }
-                        ;
-                    default:
-                        {
-                            console.warn(`Unknown behaviour parseTypeB() -->`);
-                            console.warn(element);
-                            break;
-                        }
-                        ;
-                }
-                ;
-            }
-            ;
-        });
-    }
-    ;
-    function parseTypeA(element) {
-        if (element.children) {
-            element.children.forEach(element => {
-                if (element.data) {
-                    addToCommandText(element.data);
-                }
-                else {
-                    parseTypeA(element);
-                }
-                ;
-            });
-        }
-        ;
-    }
-    ;
-    function parseTypeDL(element) {
-        element.children.forEach(element => {
-            if (element.type == 'tag') {
-                switch (element.name) {
-                    case 'dt':
-                        {
-                            addToCommandText('\n\n### ');
-                            parseTypeDT(element);
-                            break;
-                        }
-                        ;
-                    case 'dd':
-                        {
-                            addToCommandText('\n');
-                            parseTypeDD(element);
-                            break;
-                        }
-                        ;
-                }
-            }
-        });
-    }
-    ;
-    if (locIcons) {
-        locIcons.forEach(icon => {
-            let title = icon['children'][0]['attribs']['title'];
-            if (title) {
-                addToCommandText(`[${title}]`);
-            }
-            ;
-        });
-    }
-    ;
-    elements.forEach(element => {
-        if (element.name == 'dl') {
-            parseTypeDL(element);
-            addToCommandText('\n');
-        }
-        else {
-            console.warn(`unknown tag name: ${element.name}`);
-        }
-        ;
-    });
-    commandText = commandText.substr(0, commandText.search('See also:')).trim();
-    return commandText;
-}
-;
-function generateCommands() {
+//works but rendering is too simple
+function openWebView(cmd) {
     return __awaiter(this, void 0, void 0, function* () {
-        const AxiosInstance = axios_1.default.create();
-        let output = {};
-        //get array of commands from input file
-        let fd = fs.openSync(`${workingFolderPath}/cfgFunctions/commands.txt`, "a+");
-        let A3Commands = fs.readFileSync(fd).toString().split(' ').join('_');
-        fs.closeSync(fd);
-        let commandsArray = A3Commands.split('\r\n');
-        if (commandsArray[commandsArray.length - 1] === '') {
-            commandsArray.pop();
-        }
-        ;
-        for (const element of commandsArray) {
-            console.log(element);
-            let commandUrl = `https://community.bistudio.com/wiki?title=${element}&printable=yes`;
-            let responce = yield AxiosInstance.get(commandUrl);
-            if (responce) {
-                let hover = parseResponce(responce, 'div._description.cmd');
-                output[element] = {
-                    Hover: hover,
-                    Url: `https://community.bistudio.com/wiki${element}`
-                };
-            }
-            ;
-        }
-        ;
-        console.log(output);
-        let commandsOutPath = `${workingFolderPath}/cfgFunctions/commands.json`;
-        if (fs.existsSync(commandsOutPath)) {
-            fs.unlinkSync(commandsOutPath);
-        }
-        fd = fs.openSync(commandsOutPath, "a+");
-        fs.writeFileSync(fd, JSON.stringify(output));
-        fs.closeSync(fd);
+        const panel = vscode.window.createWebviewPanel('browseCommandDocs', "BI Wiki: ".concat(cmd), vscode.ViewColumn.One, {});
+        const url = `https://community.bistudio.com/wiki?title=${cmd}&printable=yes"></iframe>`;
+        yield axiosInstance.get(url).then(responce => {
+            panel.webview.html = responce.data;
+        });
     });
 }
-;
-function generateFunctions() {
-    return __awaiter(this, void 0, void 0, function* () {
-        const AxiosInstance = axios_1.default.create();
-        let output = {};
-        //get array of commands from input file
-        let fd = fs.openSync(`${workingFolderPath}/cfgFunctions/functions.txt`, "a+");
-        let A3Commands = fs.readFileSync(fd).toString().split(' ').join('_');
-        fs.closeSync(fd);
-        let commandsArray = A3Commands.split('\r\n');
-        if (commandsArray[commandsArray.length - 1] === '') {
-            commandsArray.pop();
-        }
-        ;
-        for (const element of commandsArray) {
-            if (!element.includes('_')) {
-                continue;
-            }
-            ; //Alfabettisation of list
-            console.log(element);
-            let commandUrl = `https://community.bistudio.com/wiki?title=${element}&printable=yes`;
-            let responce = yield AxiosInstance.get(commandUrl);
-            if (responce) {
-                let hover = parseResponce(responce, 'div._description.fnc');
-                output[element] = {
-                    Hover: hover,
-                    Url: `https://community.bistudio.com/wiki${element}`
-                };
-            }
-            ;
-        }
-        ;
-        console.log(output);
-        let commandsOutPath = `${workingFolderPath}/cfgFunctions/functions.json`;
-        if (fs.existsSync(commandsOutPath)) {
-            fs.unlinkSync(commandsOutPath);
-        }
-        fd = fs.openSync(commandsOutPath, "a+");
-        fs.writeFileSync(fd, JSON.stringify(output));
-        fs.closeSync(fd);
-    });
-}
-;
 function goToWiki() {
     let editor = vscode.window.activeTextEditor;
     let document = editor.document;
     let position = editor.selection.active;
-    let word = document.getText(document.getWordRangeAtPosition(position));
+    let wordCaseSensitive = document.getText(document.getWordRangeAtPosition(position));
+    let word = wordCaseSensitive.toLowerCase();
     console.debug(`Attempting to go to wiki entry for ${word}`);
     //case sensetive checks (quick)
     //engine commands
-    if (commands_json_1.default[word]) {
-        vscode.env.openExternal(commands_json_1.default[word].Url);
+    if (cmd_json_1.default[word]) {
+        vscode.env.openExternal(cmd_json_1.default[word].Url);
+        //openWebView(cmdLib[word].name)
         return;
     }
     ;
     //BIS functions
-    if (functions_json_1.default[word]) {
-        vscode.env.openExternal(functions_json_1.default[word].Url);
+    if (fnc_json_1.default[word]) {
+        vscode.env.openExternal(fnc_json_1.default[word].Url);
+        //openWebView(fncLib[word].name)
         return;
     }
     ;
-    if (config.get('caseInsensetive')) {
-        //engine commands
-        let key = commandsJsonKeys.find((key) => { return key.toLowerCase() == word.toLowerCase(); });
-        if (commands_json_1.default[key]) {
-            vscode.env.openExternal(commands_json_1.default[key].Url);
-            return;
-        }
-        ;
-        //BIS functions
-        key = functionsJsonKeys.find((key) => { return key.toLowerCase() == word.toLowerCase(); });
-        if (functions_json_1.default[key]) {
-            vscode.env.openExternal(functions_json_1.default[key].Url);
-            return;
-        }
-        ;
+    //blind wiki search
+    if (true) { //toDo make this configuration based
+        const Url = `https://community.bistudio.com/wiki/${wordCaseSensitive}`;
+        vscode.env.openExternal(vscode.Uri.parse(Url));
+        //openWebView(wordCaseSensitive)
+        return;
     }
-    vscode.window.showInformationMessage(`Can't find wiki entry for ${word}`);
+    vscode.window.showInformationMessage(`Can't find wiki entry for ${wordCaseSensitive}`);
 }
 ;
 function activate(context) {
     context.subscriptions.push(vscode.commands.registerCommand('a3cfgfunctions.recompile', () => parseDescription(context)));
-    context.subscriptions.push(vscode.commands.registerCommand('a3cfgfunctions.generateCommands', () => generateCommands()));
-    context.subscriptions.push(vscode.commands.registerCommand('a3cfgfunctions.generateFunctions', () => generateFunctions()));
     context.subscriptions.push(vscode.commands.registerTextEditorCommand('a3cfgfunctions.goToWiki', () => goToWiki()));
     //events
     context.subscriptions.push(vscode.workspace.onDidSaveTextDocument((Document) => { onSave(Document); }));
@@ -740,50 +478,32 @@ function activate(context) {
             return undefined;
         }
     }));
-    //commands wiki hovers (slows down hover loading drastically ~2500 hovers provided)
-    if (config.get('EnableCommandsHover')) {
-        for (const key in commands_json_1.default) {
-            if (Object.prototype.hasOwnProperty.call(commands_json_1.default, key)) {
-                const element = commands_json_1.default[key];
-                //hovers
-                context.subscriptions.push(vscode.languages.registerHoverProvider('sqf', {
-                    provideHover(document, position) {
-                        const range = document.getWordRangeAtPosition(position);
-                        const word = document.getText(range);
-                        if (word.toLowerCase() == key.toLowerCase()) {
-                            return new vscode.Hover(new vscode.MarkdownString(element.Hover));
-                        }
-                        ;
-                    }
-                }));
+    context.subscriptions.push(vscode.languages.registerHoverProvider('sqf', {
+        provideHover(document, position) {
+            const range = document.getWordRangeAtPosition(position);
+            const word = document.getText(range).toLowerCase();
+            const entry = cmd_json_1.default[word];
+            if (entry !== undefined) {
+                const firstSyntax = entry.syntaxArray[0];
+                const hover = firstSyntax ? entry.description + '\n\n' + firstSyntax.Syntax + '\n\n' + firstSyntax.Params + '\n\n' + firstSyntax.Return : entry.description;
+                return new vscode.Hover(new vscode.MarkdownString(hover));
             }
             ;
         }
-        ;
-    }
-    ;
-    //functions wiki hovers
-    if (config.get('EnableFunctionHover')) {
-        for (const key in functions_json_1.default) {
-            if (Object.prototype.hasOwnProperty.call(functions_json_1.default, key)) {
-                const element = functions_json_1.default[key];
-                //hovers
-                context.subscriptions.push(vscode.languages.registerHoverProvider('sqf', {
-                    provideHover(document, position) {
-                        const range = document.getWordRangeAtPosition(position);
-                        const word = document.getText(range);
-                        if (word.toLowerCase() == key.toLowerCase()) {
-                            return new vscode.Hover(new vscode.MarkdownString(element.Hover));
-                        }
-                        ;
-                    }
-                }));
+    }));
+    context.subscriptions.push(vscode.languages.registerHoverProvider('sqf', {
+        provideHover(document, position) {
+            const range = document.getWordRangeAtPosition(position);
+            const word = document.getText(range).toLowerCase();
+            const entry = fnc_json_1.default[word];
+            if (entry !== undefined) {
+                const firstSyntax = entry.syntaxArray[0];
+                const hover = firstSyntax ? entry.description + '\n\n' + firstSyntax.Syntax + '\n\n' + firstSyntax.Params + '\n\n' + firstSyntax.Return : entry.description;
+                return new vscode.Hover(new vscode.MarkdownString(hover));
             }
             ;
         }
-        ;
-    }
-    ;
+    }));
     //finally auto compile if apropriate
     if (vscode.workspace.workspaceFolders !== undefined) {
         parseDescription(context);
