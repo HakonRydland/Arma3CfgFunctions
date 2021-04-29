@@ -46,42 +46,57 @@
         "configuration": {
             "title": "Arma3CfgFunctions",
             "properties": {
-                "Arma3CfgFunctions.DescriptionPath": {
+                "Arma3CfgFunctions.Path.DescriptionPath": {
                     "type": "string",
                     "default": "",
                     "description": "Path to the Description.ext (Example: 'MissionRoot/Description.ext')"
                 },
-                "Arma3CfgFunctions.MissionRoot": {
+                "Arma3CfgFunctions.Path.MissionRoot": {
                     "type": "string",
                     "default": "",
                     "description": "Path to the root of the mission (Example: 'MissionRoot')"
                 },
-                "Arma3CfgFunctions.DisableAutoComplete": {
+                "Arma3CfgFunctions.Cfg.DisableAutoComplete": {
                     "type": "boolean",
                     "default": false,
                     "description": "Disable the auto completion feature"
                 },
-                "Arma3CfgFunctions.DisableHeaderHover": {
+                "Arma3CfgFunctions.Cfg.DisableHeaderHover": {
                     "type": "boolean",
                     "default": false,
                     "description": "Disable the Header hover feature"
                 },
-                "Arma3CfgFunctions.EnableCommandsHover": {
+                "Arma3CfgFunctions.Engine.EnableCommandsHover": {
                     "type": "boolean",
                     "default": false,
-                    "description": "Enables hover of commands wiki entries. (Warning! will slow down hover load times drastically)"
+                    "description": "Enables hover of commands wiki entries."
                 },
-                "Arma3CfgFunctions.EnableFunctionHover": {
+                "Arma3CfgFunctions.Engine.EnableFunctionHover": {
                     "type": "boolean",
                     "default": false,
-                    "description": "Enables hover of BIS function wiki entries. (Warning! will slow down hover load times drastically)"
+                    "description": "Enables hover of BIS function wiki entries."
                 },
-                "Arma3CfgFunctions.caseInsensetive": {
+                "Arma3CfgFunctions.Engine.enableEngineAutoComplete": {
                     "type": "boolean",
                     "default": false,
-                    "description": "allow definition search with case insensetivity for engine commands and BIS functions"
+                    "description": "Enables of engine commands."
                 },
-                "Arma3CfgFunctions.Tagless": {
+                "Arma3CfgFunctions.Engine.enableBISAutoComplete": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Enables auto completion of BIS function."
+                },
+                "Arma3CfgFunctions.wiki.useWebview": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Use webview panel for wiki lookups, rendering is simple and full functionality of page is missing."
+                },
+                "Arma3CfgFunctions.wiki.allowBlindSearch": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Allways search for wiki entry even if thers no database entry. Allows viewing wiki page of commands not added to the database"
+                },
+                "Arma3CfgFunctions.Cfg.Tagless": {
                     "type": "boolean",
                     "default": false,
                     "description": "Use only the function name for autocompletion, header hover, and function peek"

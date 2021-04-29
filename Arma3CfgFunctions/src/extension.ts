@@ -8,10 +8,10 @@ import {parse} from './class-parser';
 //Engine cmd's and BIS function database
 import cmdLib from "./Data/cmd.json";
 import fncLib from "./Data/fnc.json";
-
-//webview
 import axios from 'axios';
-const axiosInstance = axios.create();
+
+//axios instance
+const axiosInstance = axios.create()
 
 //database entries interface
 interface libraryEntry {
@@ -24,12 +24,13 @@ interface libraryEntry {
     }>
     examples: Array<string>
     Url: string
+    modifiers: Array<string>
 }
 
 //base defines
 let functionsLib = {}
 let config = vscode.workspace.getConfiguration('Arma3CfgFunctions');
-let completionItems: vscode.Disposable[] = [];
+let completionItems = [];
 
 //functions
 function disposCompletionItems() {
@@ -46,14 +47,14 @@ function updateFolderPaths() {
     let workspaceFolders = vscode.workspace.workspaceFolders;
     if (workspaceFolders === undefined) { return };
     missionRoot = workspaceFolders[0].uri.fsPath;
-    if (config.has("MissionRoot")) {
-        missionRoot = (missionRoot + "/" + config.get("MissionRoot")).split('\\').join('/');
+    if (config.has("Path.MissionRoot")) {
+        missionRoot = (missionRoot + "/" + config.get("Path.MissionRoot")).split('\\').join('/');
     };
     console.debug("Mission root path: ", missionRoot);
 
 
-    if (config.has('DescriptionPath')) {
-        let path = <string>config.get('DescriptionPath');
+    if (config.has('Path.DescriptionPath')) {
+        let path = <string>config.get('Path.DescriptionPath');
         if (path != "") {
             descriptionPath = path.split('\\').join('/');
         } else {
@@ -175,14 +176,13 @@ async function parseFile(fd:number, filePath:string) {
 };
 
 interface functionEntry {
-    'Entry': {
-        'Name': string
-        , 'Tag': string
-        , 'file': string
-        , 'ext': string
-        , 'Uri': vscode.Uri
-        , 'Header': string
-    }
+    Name: string
+    , NameShort: string
+    , Tag: string
+    , file: string
+    , ext: string
+    , Uri: vscode.Uri
+    , Header: string
 };
 
 async function generateLibrary(cfgFunctionsJSON:JSON) {
@@ -198,16 +198,17 @@ async function generateLibrary(cfgFunctionsJSON:JSON) {
 
     //Default attributes
     let MasterAtributes = {
-        'Name': ''
-        , 'Tag': ''
-        , 'file': 'functions'
-        , 'ext': '.sqf'
-        , 'Uri': vscode.Uri.prototype
-        , 'Header': ''
+        Name: ''
+        , NameShort: ''
+        , Tag: ''
+        , file: 'functions'
+        , ext: '.sqf'
+        , Uri: vscode.Uri.prototype
+        , Header: ''
     };
 
     let atributeKeys = ['tag', 'file', 'ext']
-    let Tagless = config.get('Tagless')
+    let Tagless = config.get('Cfg.Tagless')
 
     for (const Tag in cfgFunctionsJSON) {
         let NamespaceAtributes = Object.assign({}, MasterAtributes);
@@ -237,17 +238,19 @@ async function generateLibrary(cfgFunctionsJSON:JSON) {
                 setPropertyIfExists(func, 'ext', functionAtributes);
                 setPropertyIfExists(func, 'Tag', functionAtributes);
                     //Assign default call name and file path
-                Object.assign(functionAtributes, { Name: functionAtributes.Tag + "_fnc_" + functionName})
-                Object.assign(functionAtributes, { file: functionAtributes.file + "\\fn_" + functionName + functionAtributes.ext });
-                setPropertyIfExists(func, 'file', functionAtributes);
+                functionAtributes.Name = functionAtributes.Tag + "_fnc_" + functionName
+                functionAtributes.NameShort = functionName
+                functionAtributes.file = functionAtributes.file + "\\fn_" + functionName + functionAtributes.ext
+                setPropertyIfExists(func, 'file', functionAtributes)
 
-                Object.assign(functionAtributes, { Uri: vscode.Uri.file(missionRoot + '/' + functionAtributes.file)});
+                functionAtributes.Uri = vscode.Uri.file(missionRoot + '/' + functionAtributes.file)
+
                 let Header = await getHeader(functionAtributes.Uri);
-                Object.assign(functionAtributes, { Header: Header})
+                functionAtributes.Header = Header
 
                 //Registre function in library
                 let name = Tagless ? functionName : functionAtributes.Name
-                let entrySring = '{"' + name + '":' + JSON.stringify(functionAtributes) + '}';
+                let entrySring = '{"' + name.toLowerCase() + '":' + JSON.stringify(functionAtributes) + '}';
                 let entry: functionEntry = JSON.parse(entrySring);
                 Object.assign(functionLib, entry);
             }
@@ -279,7 +282,7 @@ async function getHeader(uri: vscode.Uri) {
 
 function reloadLanguageAdditions(context: vscode.ExtensionContext) {
     disposCompletionItems();
-    if (!config.get('DisableAutoComplete')) {
+    if (!config.get('Cfg.DisableAutoComplete')) {
         for (const key in functionsLib) {
             let disposable = vscode.languages.registerCompletionItemProvider('sqf', {
                 provideCompletionItems(document: vscode.TextDocument, Position: vscode.Position, token: vscode.CancellationToken, context: vscode.CompletionContext) {
@@ -290,33 +293,29 @@ function reloadLanguageAdditions(context: vscode.ExtensionContext) {
             })
             context.subscriptions.push(disposable);
             completionItems.push(disposable);
-        };
-    };
-
-    if (!config.get('DisableHeaderHover')) {
-        for (const key in functionsLib) {
-            const element = functionsLib[key];
-            if (!(element.Header == '')) {
-                let disposable = vscode.languages.registerHoverProvider('sqf', {
-                    provideHover(document, position, token) {
-
-                        const range = document.getWordRangeAtPosition(position);
-                        const word = document.getText(range);
-                        if (word.toLowerCase() == key.toLowerCase()) {
-
-                            return new vscode.Hover({
-                                language: "plaintext",
-                                value: element.Header
-                            });
-                        }
-                    }
-                });
-                context.subscriptions.push(disposable);
-                completionItems.push(disposable);
-            };
-        };
+        }
     }
-};
+
+    if (!config.get('Cfg.DisableHeaderHover')) {
+        let disposable = vscode.languages.registerHoverProvider('sqf', {
+            provideHover(document, position) {
+                const range = document.getWordRangeAtPosition(position)
+                const word = document.getText(range).toLowerCase()
+                const entry: functionEntry = functionsLib[word]
+                if (entry.Header === '') return undefined
+                if (entry !== undefined) {
+                    return new vscode.Hover({
+                        language: "plaintext",
+                        value: entry.Header
+                    })
+                }
+            }
+        })
+        context.subscriptions.push(disposable)
+        completionItems.push(disposable)
+    }
+
+}
 
 function onSave(Document: vscode.TextDocument) {
     //for Arma header files recompile to catch new or removed functions
@@ -331,7 +330,7 @@ function onSave(Document: vscode.TextDocument) {
         let name = nameArray[nameArray.length - 1];
         name = name.substr(3, name.length - 7); //remove fn_ prefix and .sqf file extension
         (Object.keys(functionsLib)).forEach(async Key => {
-            if (Key.endsWith(name)) {
+            if (Key.endsWith(name.toLowerCase())) {
                 let element = functionsLib[Key];
                 let header = await getHeader(element.Uri);
                 element.Header = header;
@@ -343,16 +342,25 @@ function onSave(Document: vscode.TextDocument) {
 
 //works but rendering is too simple
 async function openWebView(cmd: string) {
+
     const panel = vscode.window.createWebviewPanel(
-        'browseCommandDocs', "BI Wiki: ".concat(cmd),
-        vscode.ViewColumn.One, {}
-    );
-    const url = `https://community.bistudio.com/wiki?title=${cmd}&printable=yes"></iframe>`
-    await axiosInstance.get(url).then(
-        responce => {
-            panel.webview.html = responce.data
-        }
-    )
+        'html', "BI Wiki: ".concat(cmd),
+        vscode.ViewColumn.One, {
+        enableScripts: true,
+        enableFindWidget: true,
+        enableCommandUris: true
+    });
+    const url = `https://community.bistudio.com/wiki?title=${cmd}`
+    axiosInstance.get(url).then(r => { panel.webview.html = r.data })
+}
+
+function openExternalLink(cmd: string, Url: vscode.Uri) {
+    if (config.get('wiki.useWebview')) {
+        openWebView(cmd)
+        return
+    }
+
+    vscode.env.openExternal(Url)
 }
 
 function goToWiki() {
@@ -363,30 +371,122 @@ function goToWiki() {
     let word = wordCaseSensitive.toLowerCase()
     console.debug(`Attempting to go to wiki entry for ${word}`);
 
-    //case sensetive checks (quick)
     //engine commands
     if (cmdLib[word]) {
-        vscode.env.openExternal(cmdLib[word].Url)
-        //openWebView(cmdLib[word].name)
+        const entry = cmdLib[word]
+        openExternalLink(entry.name, entry.Url)
         return
     };
     //BIS functions
     if (fncLib[word]) {
-        vscode.env.openExternal(fncLib[word].Url)
-        //openWebView(fncLib[word].name)
+        const entry = fncLib[word]
+        openExternalLink(entry.name, entry.Url)
         return
     };
 
     //blind wiki search
-    if (true) { //toDo make this configuration based
+    if (config.get('wiki.allowBlindSearch')) { //toDo make this configuration based
         const Url = `https://community.bistudio.com/wiki/${wordCaseSensitive}`
-        vscode.env.openExternal(vscode.Uri.parse(Url))
-        //openWebView(wordCaseSensitive)
+        openExternalLink(wordCaseSensitive, vscode.Uri.parse(Url))
         return
     }
 
     vscode.window.showInformationMessage(`Can't find wiki entry for ${wordCaseSensitive}`);
 };
+
+let engineAndBISHovers: vscode.Disposable[] = []
+function loadEngineAndBISHovers(context: vscode.ExtensionContext) {
+    engineAndBISHovers.forEach(element => { element.dispose() })
+    engineAndBISHovers = []
+
+    if (config.get('Engine.EnableCommandsHover')) {
+        const disposable = vscode.languages.registerHoverProvider('sqf', {
+            provideHover(document, position) {
+                const range = document.getWordRangeAtPosition(position);
+                const word = document.getText(range).toLowerCase();
+                const entry: libraryEntry = cmdLib[word]
+                if (entry !== undefined) {
+                    const modifiers = entry.modifiers
+                    const modifierText = modifiers.length > 0 ? modifiers.reduce((prev, cur) => { return `${prev} **${cur}** |` }, '|') + '\n\n' : ''
+                    const firstSyntax = entry.syntaxArray[0]
+                    const hover = firstSyntax ? entry.description + '\n\n#### Syntax:\n' + firstSyntax.Syntax + '\n\n' + firstSyntax.Params + '\n\n#### Return:\n' + firstSyntax.Return : entry.description
+                    return new vscode.Hover(
+                        new vscode.MarkdownString(modifierText + hover)
+                    )
+                }
+            }
+        })
+        context.subscriptions.push(disposable)
+        engineAndBISHovers.push(disposable)
+    }
+
+    if (config.get('Engine.EnableFunctionHover')) {
+        const disposable = vscode.languages.registerHoverProvider('sqf', {
+            provideHover(document, position) {
+                const range = document.getWordRangeAtPosition(position);
+                const word = document.getText(range).toLowerCase();
+                const entry: libraryEntry = fncLib[word]
+                if (entry !== undefined) {
+                    const modifiers = entry.modifiers
+                    const modifierText = modifiers.length > 0 ? modifiers.reduce((prev, cur) => { return `${prev} **${cur}** |` }, '|') + '\n\n' : ''
+                    const firstSyntax = entry.syntaxArray[0]
+                    const hover = firstSyntax ? entry.description + '\n\n#### Syntax:\n' + firstSyntax.Syntax + '\n\n' + firstSyntax.Params + '\n\n#### Return:\n' + firstSyntax.Return : entry.description
+                    return new vscode.Hover(
+                        new vscode.MarkdownString(modifierText + hover)
+                    )
+                }
+            }
+        })
+        context.subscriptions.push(disposable)
+        engineAndBISHovers.push(disposable)
+    }
+}
+
+let engineAndBIScompletions: vscode.Disposable[] = []
+function loadEngineAndBISCompletion(context: vscode.ExtensionContext) {
+    engineAndBIScompletions.forEach(element => { element.dispose() })
+    engineAndBIScompletions = []
+
+    if (config.get('Engine.enableEngineAutoComplete')) {
+        for (const key in cmdLib) {
+            const entry: libraryEntry = cmdLib[key]
+            const disposable = vscode.languages.registerCompletionItemProvider('sqf', {
+                provideCompletionItems(document: vscode.TextDocument, Position: vscode.Position, token: vscode.CancellationToken, context: vscode.CompletionContext) {
+                    let cmpItems = []
+                    for (const syntaxElement of entry.syntaxArray) {
+                        let cmpItem = new vscode.CompletionItem(entry.name, 13)
+                        let docu = syntaxElement.Syntax + ' --> ' + syntaxElement.Return
+                        cmpItem.documentation = new vscode.MarkdownString(docu)
+                        cmpItems.push(cmpItem)
+                    }
+                    return cmpItems
+                }
+            })
+            context.subscriptions.push(disposable)
+            engineAndBIScompletions.push(disposable)
+        }
+    }
+    if (config.get('Engine.enableBISAutoComplete')) {
+        for (const key in fncLib) {
+            const entry: libraryEntry = cmdLib[key]
+            const disposable = vscode.languages.registerCompletionItemProvider('sqf', {
+                provideCompletionItems(document: vscode.TextDocument, Position: vscode.Position, token: vscode.CancellationToken, context: vscode.CompletionContext) {
+                    let cmpItems = []
+                    for (const syntaxElement of entry.syntaxArray) {
+                        let cmpItem = new vscode.CompletionItem(entry.name, 13)
+                        let docu = syntaxElement.Syntax + ' --> ' + syntaxElement.Return
+                        cmpItem.documentation = new vscode.MarkdownString(docu)
+                        cmpItems.push(cmpItem)
+                    }
+                    return cmpItems
+                }
+            })
+            context.subscriptions.push(disposable)
+            engineAndBIScompletions.push(disposable)
+        }
+    }
+}
+
 
 export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(vscode.commands.registerCommand('a3cfgfunctions.recompile', () => parseDescription(context)));
@@ -405,52 +505,27 @@ export function activate(context: vscode.ExtensionContext) {
         config = vscode.workspace.getConfiguration('Arma3CfgFunctions');
         updateFolderPaths()
         vscode.commands.executeCommand("a3cfgfunctions.recompile");
+        loadEngineAndBISHovers(context)
+        loadEngineAndBISCompletion(context)
     }))
 
     //custom function definitions
     context.subscriptions.push(vscode.languages.registerDefinitionProvider({ language: 'sqf' }, {
         provideDefinition(document, position) {
-            let word = document.getText(document.getWordRangeAtPosition(position));
+            let word = document.getText(document.getWordRangeAtPosition(position)).toLowerCase();
 
             //custom function
-            let key = Object.keys(functionsLib).find((Key) => { return Key.toLowerCase() == word.toLowerCase() });
-            if (functionsLib[key]) {
-                return new vscode.Location(functionsLib[key].Uri, new vscode.Position(0, 0));
+            if (functionsLib[word]) {
+                return new vscode.Location(functionsLib[word].Uri, new vscode.Position(0, 0));
             };
 
             return undefined
         }
     }));
 
-    context.subscriptions.push(vscode.languages.registerHoverProvider('sqf', {
-        provideHover(document, position) {
-            const range = document.getWordRangeAtPosition(position);
-            const word = document.getText(range).toLowerCase();
-            const entry: libraryEntry = cmdLib[word]
-            if (entry !== undefined) {
-                const firstSyntax = entry.syntaxArray[0]
-                const hover = firstSyntax ? entry.description + '\n\n' + firstSyntax.Syntax + '\n\n' + firstSyntax.Params + '\n\n' + firstSyntax.Return : entry.description
-                return new vscode.Hover(
-                    new vscode.MarkdownString(hover)
-                );
-            };
-        }
-    }));
-
-    context.subscriptions.push(vscode.languages.registerHoverProvider('sqf', {
-        provideHover(document, position) {
-            const range = document.getWordRangeAtPosition(position);
-            const word = document.getText(range).toLowerCase();
-            const entry: libraryEntry = fncLib[word]
-            if (entry !== undefined) {
-                const firstSyntax = entry.syntaxArray[0]
-                const hover = firstSyntax ? entry.description + '\n\n' + firstSyntax.Syntax + '\n\n' + firstSyntax.Params + '\n\n' + firstSyntax.Return : entry.description
-                return new vscode.Hover(
-                    new vscode.MarkdownString(hover)
-                );
-            };
-        }
-    }));
+    //extra hovers and auto completion
+    loadEngineAndBISHovers(context)
+    loadEngineAndBISCompletion(context)
 
     //finally auto compile if apropriate
     if (vscode.workspace.workspaceFolders !== undefined) { parseDescription(context) };
