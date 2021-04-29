@@ -2,6 +2,14 @@
 
 All notable changes to the "Arma 3 Cfg Functions" extension will be documented in this file.
 
+## [1.1.10]
+
+* Updated wiki hovers
+* added engine commands and BIS function auto completion
+* improved performance of hovers
+* fixed BIS function wiki link
+* added experimental webview panel for wiki lookups
+
 ## [1.1.9]
 
 * Fixed compiler failure with tag change in namespace layer
