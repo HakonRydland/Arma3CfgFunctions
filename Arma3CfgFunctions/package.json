@@ -76,12 +76,12 @@
                     "default": false,
                     "description": "Enables hover of BIS function wiki entries."
                 },
-                "Arma3CfgFunctions.Engine.enableEngineAutoComplete": {
+                "Arma3CfgFunctions.Engine.enableCommandsAutoComplete": {
                     "type": "boolean",
                     "default": false,
                     "description": "Enables of engine commands."
                 },
-                "Arma3CfgFunctions.Engine.enableBISAutoComplete": {
+                "Arma3CfgFunctions.Engine.enableFunctionAutoComplete": {
                     "type": "boolean",
                     "default": false,
                     "description": "Enables auto completion of BIS function."

@@ -497,7 +497,7 @@ let engineAndBIScompletions = [];
 function loadEngineAndBISCompletion(context) {
     engineAndBIScompletions.forEach(element => { element.dispose(); });
     engineAndBIScompletions = [];
-    if (config.get('Engine.enableEngineAutoComplete')) {
+    if (config.get('Engine.enableCommandsAutoComplete')) {
         for (const key in cmd_json_1.default) {
             const entry = cmd_json_1.default[key];
             const disposable = vscode.languages.registerCompletionItemProvider('sqf', {
@@ -516,9 +516,9 @@ function loadEngineAndBISCompletion(context) {
             engineAndBIScompletions.push(disposable);
         }
     }
-    if (config.get('Engine.enableBISAutoComplete')) {
+    if (config.get('Engine.enableFunctionAutoComplete')) {
         for (const key in fnc_json_1.default) {
-            const entry = cmd_json_1.default[key];
+            const entry = fnc_json_1.default[key];
             const disposable = vscode.languages.registerCompletionItemProvider('sqf', {
                 provideCompletionItems(document, Position, token, context) {
                     let cmpItems = [];
