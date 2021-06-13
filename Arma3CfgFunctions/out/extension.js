@@ -236,8 +236,19 @@ function parseFile(fd, filePath) {
 function generateLibrary(cfgFunctionsJSON) {
     return __awaiter(this, void 0, void 0, function* () {
         function setPropertyIfExists(object, key, Atributes) {
-            if (Object.getOwnPropertyDescriptor(object, key)) {
-                Atributes[key] = object[key];
+            //case insensitive key checks
+            let objectKeys = Object.keys(object);
+            let index = objectKeys.findIndex((value) => { return value.toLowerCase() == key.toLowerCase(); });
+            if (index > -1) {
+                let targetKeys = Object.keys(Atributes);
+                let targetIndex = targetKeys.findIndex((value) => { return value.toLowerCase() == key.toLowerCase(); });
+                if (targetIndex > -1) {
+                    Atributes[targetKeys[targetIndex]] = object[objectKeys[index]];
+                }
+                else {
+                    Atributes[key] = object[objectKeys[index]];
+                }
+                ;
             }
             ;
         }
@@ -262,6 +273,7 @@ function generateLibrary(cfgFunctionsJSON) {
             //Namespace traits
             NamespaceAtributes.Tag = Tag;
             setPropertyIfExists(Namespace, 'file', NamespaceAtributes);
+            setPropertyIfExists(Namespace, 'Tag', NamespaceAtributes);
             for (const FolderName in Namespace) {
                 if (atributeKeys.includes(FolderName.toLowerCase())) {
                     continue;
@@ -347,10 +359,12 @@ function reloadLanguageAdditions(context) {
     disposCompletionItems();
     if (!config.get('Cfg.DisableAutoComplete')) {
         for (const key in functionsLib) {
+            const entry = functionsLib[key];
+            let completionText = config.get('Cfg.Tagless') ? entry.NameShort : entry.Name;
             let disposable = vscode.languages.registerCompletionItemProvider('sqf', {
                 provideCompletionItems(document, Position, token, context) {
                     return [
-                        new vscode.CompletionItem(key, 2)
+                        new vscode.CompletionItem(completionText, 2)
                     ];
                 }
             });
