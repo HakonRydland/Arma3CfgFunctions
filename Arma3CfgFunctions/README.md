@@ -41,11 +41,11 @@ Both `Description Path` and `Mission Root` paths are workspace relative
 
 ## Release Notes
 
-* Updated wiki hovers
-* added engine commands and BIS function auto completion
-* improved performance of hovers
-* fixed BIS function wiki link
-* added experimental webview panel for wiki lookups
+* Fixed case sensitivity of cfg properties
+* Fixed wiki lookup not working in without a file existing with the `.sqf` extension
+* Added an output channel for data dumping, moved two of the three info messages to output channel
+* Added gateing for parse attempts to prevent doubling down on parsing at the same time
+* Fixed mistake in file path inheritance
 
 ## Known issues
 
