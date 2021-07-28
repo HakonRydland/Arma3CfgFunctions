@@ -44,7 +44,6 @@ export function generate(CfgFunctions: Object) {
         }
     }
 
-    console.debug(functionsRegistry)
     return functionsRegistry
 };
 

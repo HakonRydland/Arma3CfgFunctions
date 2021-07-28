@@ -200,7 +200,6 @@ async function generateLibrary(cfgFunctionsJSON: JSON) {
         func.name = `${func.tag}_fnc_${funcKey}`
 
         let filePath = (func.file === '') ? func.folderPath : func.file
-        console.debug(func.folderPath)
         func.Uri = vscode.Uri.file(`${missionRoot}\\${filePath}\\fn_${func.nameShort}${func.ext}`)
 
         let Header = await getHeader(func.Uri)
