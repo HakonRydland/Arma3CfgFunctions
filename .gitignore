@@ -1,0 +1,6 @@
+.vscode/
+.github/
+out
+package-lock.json
+vsc-extension-quickstart.md
+.eslintrc.json

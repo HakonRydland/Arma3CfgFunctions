@@ -2,6 +2,13 @@
 
 All notable changes to the "Arma 3 Cfg Functions" extension will be documented in this file.
 
+## [1.1.11]
+* Fixed case sensitivity of cfg properties
+* Fixed wiki lookup not working in without a file existing with the `.sqf` extension
+* Added an output channel for data dumping, moved two of the three info messages to output channel
+* Added gateing for parse attempts to prevent doubling down on parsing at the same time
+* Fixed mistake in file path inheritance
+
 ## [1.1.10]
 
 * Updated wiki hovers
