@@ -40,7 +40,7 @@
                 "command": "a3cfgfunctions.goToWiki",
                 "category": "Arma 3",
                 "title": "Go to wiki entry",
-                "enablement": "resourceLangId == sqf"
+                "enablement": "editorLangId == sqf"
             }
         ],
         "configuration": {
